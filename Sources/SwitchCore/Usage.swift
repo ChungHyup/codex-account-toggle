@@ -10,11 +10,11 @@ public struct UsageWindow: Decodable {
         return min(100, max(0, 100 - usedPercent))
     }
     public var title: String {
-        guard let minutes = windowDurationMins, minutes > 0 else { return "사용 한도" }
-        if minutes == 10080 { return "주간" }
-        if minutes % 1440 == 0 { return "\(minutes / 1440)일" }
-        if minutes % 60 == 0 { return "\(minutes / 60)시간" }
-        return "\(minutes)분"
+        guard let minutes = windowDurationMins, minutes > 0 else { return L10n.text("사용 한도") }
+        if minutes == 10080 { return L10n.text("주간") }
+        if minutes % 1440 == 0 { return L10n.format("%@일", String(minutes / 1440)) }
+        if minutes % 60 == 0 { return L10n.format("%@시간", String(minutes / 60)) }
+        return L10n.format("%@분", String(minutes))
     }
     public func resetPassed(at date: Date) -> Bool {
         guard let resetsAt else { return false }
@@ -46,7 +46,7 @@ public struct UsageSnapshot {
         return UsageSnapshot(profileID: profileID, plan: plan ?? limit?.planType, limit: limit, observedAt: observedAt, isDemo: isDemo)
     }
     public var planLabel: String {
-        guard let plan, !plan.isEmpty else { return "요금제 미확인" }
+        guard let plan, !plan.isEmpty else { return L10n.text("요금제 미확인") }
         switch plan.lowercased() {
         case "plus": return "Plus"
         case "pro": return "Pro"

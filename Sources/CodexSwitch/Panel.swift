@@ -30,18 +30,18 @@ struct Panel: View {
                 if let active { currentCard(active) }
                 else {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("저장된 현재 계정 없음", systemImage: "person.crop.circle.badge.questionmark").font(.system(size: 14, weight: .semibold))
-                        Text("로그인한 계정을 저장하면 여기에 표시됩니다.").font(.system(size: 12)).foregroundStyle(.secondary)
+                        Label(L10n.text("저장된 현재 계정 없음"), systemImage: "person.crop.circle.badge.questionmark").font(.system(size: 14, weight: .semibold))
+                        Text(L10n.text("로그인한 계정을 저장하면 여기에 표시됩니다.")).font(.system(size: 12)).foregroundStyle(.secondary)
                     }.padding(18).frame(maxWidth: .infinity, alignment: .leading).background(Palette.card, in: RoundedRectangle(cornerRadius: 16))
                 }
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Text("계정 전환").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                        Text(L10n.text("계정 전환")).font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                         Spacer()
-                        Text("\(others.count)개 계정").font(.system(size: 11)).foregroundStyle(.secondary)
+                        Text(L10n.format("%@개 계정", String(others.count))).font(.system(size: 11)).foregroundStyle(.secondary)
                     }.padding(.horizontal, 3)
                     if others.isEmpty {
-                        Text("다른 계정을 추가하면 클릭 한 번으로 선택할 수 있어요.")
+                        Text(L10n.text("다른 계정을 추가하면 클릭 한 번으로 선택할 수 있어요."))
                             .font(.system(size: 12)).foregroundStyle(.secondary).padding(16)
                     } else if others.count > 3 {
                         ScrollView { accountRows }.frame(height: 220)
@@ -49,11 +49,11 @@ struct Panel: View {
                 }
                 if model.busy || model.notice != .neutral || model.recovery { notice }
                 if model.recovery {
-                    Button("이전 로그인 복구", action: model.restore).buttonStyle(.borderedProminent).tint(Palette.accent).disabled(model.busy)
+                    Button(L10n.text("이전 로그인 복구"), action: model.restore).buttonStyle(.borderedProminent).tint(Palette.accent).disabled(model.busy)
                 }
                 if !model.isDemo {
                     Button(action: model.saveCurrent) {
-                        Label("현재 로그인 계정 추가", systemImage: "plus").font(.system(size: 13, weight: .medium)).frame(maxWidth: .infinity).padding(.vertical, 5)
+                        Label(L10n.text("현재 로그인 계정 추가"), systemImage: "plus").font(.system(size: 13, weight: .medium)).frame(maxWidth: .infinity).padding(.vertical, 5)
                     }.buttonStyle(.bordered).disabled(model.busy)
                 }
             }.padding(.horizontal, 20).padding(.bottom, 20)
@@ -77,7 +77,7 @@ struct Panel: View {
             if model.isDemo {
                 Text("DEMO").font(.system(size: 9, weight: .bold, design: .monospaced)).tracking(1)
                     .foregroundStyle(.secondary).padding(.horizontal, 8).padding(.vertical, 5)
-                    .overlay(Capsule().strokeBorder(Palette.line)).accessibilityLabel("데모 모드")
+                    .overlay(Capsule().strokeBorder(Palette.line)).accessibilityLabel(L10n.text("데모 모드"))
             }
         }.padding(20)
     }
@@ -86,7 +86,7 @@ struct Panel: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 6) {
                 Circle().fill(Palette.accent).frame(width: 5, height: 5)
-                Text(model.isDemo ? "현재 선택한 데모 계정" : "현재 로그인 계정")
+                Text(model.isDemo ? L10n.text("현재 선택한 데모 계정") : L10n.text("현재 로그인 계정"))
                     .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.accent)
                 Spacer()
                 options(profile)
@@ -102,18 +102,18 @@ struct Panel: View {
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "checkmark.circle.fill").font(.system(size: 19)).foregroundStyle(Palette.accent)
-                    .accessibilityLabel("현재 선택됨")
+                    .accessibilityLabel(L10n.text("현재 선택됨"))
             }
             Rectangle().fill(Palette.accent.opacity(0.12)).frame(height: 1)
             if let usage = model.usage[profile.id] {
                 HStack(alignment: .top, spacing: 16) {
-                    quotaMeter(usage.limit?.primary, fallback: "단기 한도")
-                    quotaMeter(usage.limit?.secondary, fallback: "장기 한도")
+                    if let primary = usage.limit?.primary { quotaMeter(primary, fallback: primary.title) }
+                    if let secondary = usage.limit?.secondary { quotaMeter(secondary, fallback: secondary.title) }
                 }
-                Text(usage.isDemo ? "샘플 사용량 · 한국 시간 (KST)" : usage.isStale(at: Date()) ? "마지막 확인 값 · 새로고침 필요" : "마지막 확인 \(usage.observedAt.formatted(date: .omitted, time: .shortened))")
+                Text(usage.isDemo ? L10n.text("샘플 사용량 · 한국 시간 (KST)") : usage.isStale(at: Date()) ? L10n.text("마지막 확인 값 · 새로고침 필요") : L10n.format("마지막 확인 %@", String(usage.observedAt.formatted(date: .omitted, time: .shortened))))
                     .font(.system(size: 10)).foregroundStyle(.secondary)
             } else {
-                Text("사용량 미확인 · 실시간 조회 연결 전").font(.system(size: 11)).foregroundStyle(.secondary)
+                Text(L10n.text("사용량 미확인 · 실시간 조회 연결 전")).font(.system(size: 11)).foregroundStyle(.secondary)
             }
         }.padding(18)
             .background(Palette.accent.opacity(0.07), in: RoundedRectangle(cornerRadius: 16))
@@ -136,15 +136,15 @@ struct Panel: View {
                                 if let usage = model.usage[profile.id] {
                                     Text(compactUsage(usage)).font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.accent)
                                 } else {
-                                    Text("요금제·사용량 미확인").font(.system(size: 10)).foregroundStyle(.secondary)
+                                    Text(L10n.text("요금제·사용량 미확인")).font(.system(size: 10)).foregroundStyle(.secondary)
                                 }
                             }
                             Spacer(minLength: 4)
                             Image(systemName: "arrow.right").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                         }.padding(.leading, 13).padding(.vertical, 13).padding(.trailing, 8).contentShape(Rectangle())
                     }.buttonStyle(AccountButtonStyle()).disabled(model.busy || model.recovery)
-                        .help("\(profile.name) 계정으로 전환")
-                        .accessibilityLabel("\(profile.name), \(profile.email), 계정 전환")
+                        .help(L10n.format("%@ 계정으로 전환", String(profile.name)))
+                        .accessibilityLabel(L10n.format("%@, %@, 계정 전환", String(profile.name), String(profile.email)))
                     options(profile).padding(.trailing, 9)
                 }.background(Palette.card, in: RoundedRectangle(cornerRadius: 13))
                     .overlay(RoundedRectangle(cornerRadius: 13).strokeBorder(Palette.line))
@@ -167,13 +167,13 @@ struct Panel: View {
             Text(usage.planLabel).font(.system(size: 9, weight: .semibold))
                 .foregroundStyle(Palette.accent).padding(.horizontal, 6).padding(.vertical, 3)
                 .background(Palette.accent.opacity(0.09), in: Capsule())
-                .help(usage.isDemo ? "샘플 요금제" : "마지막 확인한 요금제")
+                .help(usage.isDemo ? L10n.text("샘플 요금제") : L10n.text("마지막 확인한 요금제"))
         }
     }
 
     private func quotaMeter(_ window: UsageWindow?, fallback: String) -> some View {
         TimelineView(.periodic(from: .now, by: 30)) { context in
-            let schedule = ResetSchedule(timestamp: window?.resetsAt, now: context.date)
+            let schedule = ResetSchedule(timestamp: window?.resetsAt, now: context.date, language: L10n.language)
             let remaining = schedule.needsRefresh ? nil : window?.remainingPercent
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline) {
@@ -181,7 +181,7 @@ struct Panel: View {
                     Spacer()
                     Text(remaining.map { "\(Int($0.rounded(.down)))%" } ?? "—")
                         .font(.system(size: 16, weight: .semibold, design: .rounded)).monospacedDigit()
-                    Text("남음").font(.system(size: 10)).foregroundStyle(.secondary)
+                    Text(L10n.text("남음")).font(.system(size: 10)).foregroundStyle(.secondary)
                 }
                 GeometryReader { geometry in
                     Capsule().fill(Palette.accent.opacity(0.10))
@@ -208,14 +208,14 @@ struct Panel: View {
             let percent = window.resetPassed(at: Date()) ? nil : window.remainingPercent
             return "\(window.title) \(percent.map { "\(Int($0.rounded(.down)))%" } ?? "—")"
         }.joined(separator: " · ")
-        return text.isEmpty ? "사용량 미확인" : (usage.isDemo ? "샘플 · " : "마지막 확인 · ") + text + " 남음"
+        return text.isEmpty ? L10n.text("사용량 미확인") : (usage.isDemo ? L10n.text("샘플 · ") : L10n.text("마지막 확인 · ")) + text + L10n.text(" 남음")
     }
 
     private func options(_ profile: Profile) -> some View {
-        Menu { Button("이름 변경…") { model.rename(profile) } } label: {
+        Menu { Button(L10n.text("이름 변경…")) { model.rename(profile) } } label: {
             Image(systemName: "ellipsis").font(.system(size: 13)).foregroundStyle(.secondary).frame(width: 24, height: 24).contentShape(Rectangle())
         }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().disabled(model.busy)
-            .help("\(profile.name) 관리").accessibilityLabel("\(profile.name) 관리")
+            .help(L10n.format("%@ 관리", String(profile.name))).accessibilityLabel(L10n.format("%@ 관리", String(profile.name)))
     }
 
     private var notice: some View {
@@ -233,18 +233,18 @@ struct Panel: View {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "shield.lefthalf.filled").font(.system(size: 12)).foregroundStyle(Palette.accent).padding(.top, 2)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("안심하고 둘러보세요").font(.system(size: 11, weight: .medium))
-                    Text("샘플 계정만 바뀌며 실제 로그인은 유지됩니다.").font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text(L10n.text("안심하고 둘러보세요")).font(.system(size: 11, weight: .medium))
+                    Text(L10n.text("샘플 계정만 바뀌며 실제 로그인은 유지됩니다.")).font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
                 Button { showDemoSettings.toggle() } label: {
                     Image(systemName: showDemoSettings ? "chevron.up" : "slider.horizontal.3")
                         .font(.system(size: 12)).frame(width: 26, height: 26)
-                }.buttonStyle(.plain).foregroundStyle(.secondary).help("데모 테스트 설정")
-                    .accessibilityLabel(showDemoSettings ? "데모 설정 접기" : "데모 설정 펼치기")
+                }.buttonStyle(.plain).foregroundStyle(.secondary).help(L10n.text("데모 테스트 설정"))
+                    .accessibilityLabel(showDemoSettings ? L10n.text("데모 설정 접기") : L10n.text("데모 설정 펼치기"))
             }
             if showDemoSettings {
-                Picker("전환 시나리오", selection: $model.scenario) {
+                Picker(L10n.text("전환 시나리오"), selection: $model.scenario) {
                     ForEach(DemoScenario.allCases) { Text($0.title).tag($0) }
                 }.font(.system(size: 11)).disabled(model.busy)
             }
@@ -255,15 +255,22 @@ struct Panel: View {
 
     private var footer: some View {
         HStack {
-            Label("로컬 저장", systemImage: "internaldrive").font(.system(size: 11)).foregroundStyle(.secondary)
+            Label(L10n.text("로컬 저장"), systemImage: "internaldrive").font(.system(size: 11)).foregroundStyle(.secondary)
             Spacer()
             Button(action: model.refresh) { Image(systemName: "arrow.clockwise").frame(width: 26, height: 26) }
-                .buttonStyle(.plain).help("계정 새로고침").accessibilityLabel("계정 새로고침").disabled(model.busy)
+                .buttonStyle(.plain).help(L10n.text("계정 새로고침")).accessibilityLabel(L10n.text("계정 새로고침")).disabled(model.busy)
             Menu {
-                if !model.isDemo { Button("로그인 파일 가져오기…", action: model.importAccount) }
-                Button("Codex Switch 종료") { NSApp.terminate(nil) }
+                Menu("Language / 언어") {
+                    Button("System / 시스템") { UserDefaults.standard.removeObject(forKey: "appLanguage") }
+                    Button("한국어") { UserDefaults.standard.set("ko", forKey: "appLanguage") }
+                    Button("English") { UserDefaults.standard.set("en", forKey: "appLanguage") }
+                    Text("Restart Switch to apply / 재실행 후 적용")
+                }
+                Divider()
+                if !model.isDemo { Button(L10n.text("로그인 파일 가져오기…"), action: model.importAccount) }
+                Button(L10n.text("Codex Switch 종료")) { NSApp.terminate(nil) }
             } label: { Image(systemName: "gearshape").frame(width: 26, height: 26) }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help("앱 설정").accessibilityLabel("앱 설정").disabled(model.busy)
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help(L10n.text("앱 설정")).accessibilityLabel(L10n.text("앱 설정")).disabled(model.busy)
         }.font(.system(size: 12)).foregroundStyle(.secondary).padding(.horizontal, 20).padding(.vertical, 8)
     }
 }

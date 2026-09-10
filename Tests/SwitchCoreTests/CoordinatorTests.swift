@@ -40,7 +40,7 @@ final class CoordinatorTests: XCTestCase {
             app.scenario = .launchFailed
             let before = try store.read(store.active)
             do { try await coordinator.switchTo(store.profiles()[1]); XCTFail("Expected launch failure") }
-            catch { XCTAssertTrue(error.localizedDescription.contains("복구")) }
+            catch { XCTAssertEqual(error.localizedDescription, L10n.text("전환 실패로 이전 로그인을 복구했습니다.")) }
             XCTAssertEqual(try store.read(store.active), before)
             XCTAssertEqual(app.launchCount, 2)
             XCTAssertTrue(app.running)

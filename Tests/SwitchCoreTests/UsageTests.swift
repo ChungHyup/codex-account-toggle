@@ -8,12 +8,12 @@ final class UsageTests: XCTestCase {
     func testRemainingIsInverseOfUsage() throws {
         let value = try parse(#"{"rateLimits":{"primary":{"usedPercent":28,"windowDurationMins":300}}}"#)
         XCTAssertEqual(value.limit?.primary?.remainingPercent, 72)
-        XCTAssertEqual(value.limit?.primary?.title, "5시간")
+        XCTAssertEqual(value.limit?.primary?.title, L10n.format("%@시간", "5"))
     }
     func testMissingIsNotZeroOrFull() throws {
         let value = try parse(#"{"rateLimits":{"primary":{"usedPercent":null}}}"#)
         XCTAssertNil(value.limit?.primary?.remainingPercent)
-        XCTAssertEqual(value.planLabel, "요금제 미확인")
+        XCTAssertEqual(value.planLabel, L10n.text("요금제 미확인"))
     }
     func testMultipleBucketViewTakesPrecedence() throws {
         let value = try parse(#"{"rateLimits":{"primary":{"usedPercent":10}},"rateLimitsByLimitId":{"codex":{"primary":{"usedPercent":80}}}}"#)
@@ -27,7 +27,7 @@ final class UsageTests: XCTestCase {
         let value = try parse(#"{"rateLimits":{"primary":{"usedPercent":105,"resetsAt":110},"secondary":{"usedPercent":-10,"windowDurationMins":10080}}}"#)
         XCTAssertEqual(value.limit?.primary?.remainingPercent, 0)
         XCTAssertEqual(value.limit?.secondary?.remainingPercent, 100)
-        XCTAssertEqual(value.limit?.secondary?.title, "주간")
+        XCTAssertEqual(value.limit?.secondary?.title, L10n.text("주간"))
         XCTAssertTrue(value.limit!.primary!.resetPassed(at: Date(timeIntervalSince1970: 120)))
         XCTAssertTrue(value.isStale(at: Date(timeIntervalSince1970: 500)))
     }
