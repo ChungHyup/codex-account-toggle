@@ -44,6 +44,8 @@ For deterministic visual checks:
 
 These render synthetic data only. `--window` opens the demo in a small standalone window. Demo workspaces are created under the system temporary directory and are not committed.
 
+For a design-only preview without demo copy, add `--product-preview` to `--render-preview`. It writes `dist/product-preview-en.png` for English (or `product-preview-dark-en.png` with `--dark`). It still uses synthetic accounts and the fake lifecycle. This flag only affects offscreen rendering; normal demo launches keep their labels. These images do not show live account data.
+
 ## Credential handling
 
 Experimental live mode reads `CODEX_HOME/auth.json` (default `~/.codex/auth.json`) and stores snapshots under `~/Library/Application Support/CodexSwitch`. Files are plaintext with mode 0600; the directory uses 0700. This is file-permission protection, not encryption. The app itself has no telemetry or network client. Project/session/skill/config files are not intentionally modified.

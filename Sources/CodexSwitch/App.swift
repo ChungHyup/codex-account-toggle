@@ -24,15 +24,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let state = CommandLine.arguments.contains("--error-preview")
             if state { model.notice = .error; model.message = L10n.text("전환 실패로 이전 로그인을 복구했습니다.") }
             NSApp.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
-            let expanded = CommandLine.arguments.contains("--settings-preview")
-            let hosting = NSHostingView(rootView: Panel(model: model, expanded: expanded).background(Color(nsColor: .windowBackgroundColor)))
+            let productPreview = CommandLine.arguments.contains("--product-preview")
+            let expanded = !productPreview && CommandLine.arguments.contains("--settings-preview")
+            let hosting = NSHostingView(rootView: Panel(model: model, expanded: expanded, productPreview: productPreview).background(Color(nsColor: .windowBackgroundColor)))
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: PanelLayout.width, height: PanelLayout.height + (state ? 80 : 0) + (expanded ? 44 : 0)), styleMask: [.borderless], backing: .buffered, defer: false)
             window.contentView = hosting
             hosting.layoutSubtreeIfNeeded()
             if let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) {
                 hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
                 if let png = bitmap.representation(using: .png, properties: [:]) {
-                try? png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(dark ? "dist/demo-preview-dark\(languageSuffix).png" : state ? "dist/demo-preview-error\(languageSuffix).png" : expanded ? "dist/demo-preview-settings\(languageSuffix).png" : "dist/demo-preview\(languageSuffix).png"))
+                try? png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(productPreview ? "dist/product-preview\(dark ? "-dark" : "")\(languageSuffix).png" : dark ? "dist/demo-preview-dark\(languageSuffix).png" : state ? "dist/demo-preview-error\(languageSuffix).png" : expanded ? "dist/demo-preview-settings\(languageSuffix).png" : "dist/demo-preview\(languageSuffix).png"))
                 }
             }
             NSApp.terminate(nil)

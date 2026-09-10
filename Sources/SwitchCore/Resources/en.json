@@ -110,5 +110,6 @@
   "조회 연결 준비 중": "Live connection pending",
   "읽기 전용 연결 검증 전 · 샘플 데이터": "Read-only connection under review · Sample data",
   "안내 닫기": "Dismiss message",
-  "오래된 값 · 새로고침 필요": "Stale reading · Refresh needed"
+  "오래된 값 · 새로고침 필요": "Stale reading · Refresh needed",
+  "한국 시간 (KST)": "Korea time (KST)"
 }

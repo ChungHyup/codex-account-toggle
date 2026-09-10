@@ -19,11 +19,14 @@ private enum Palette {
 
 struct Panel: View {
     @ObservedObject var model: Model
+    // Presentation only: enabled exclusively for offscreen renders with synthetic data.
+    private let productPreview: Bool
     @Environment(\.colorScheme) private var colorScheme
     @State private var showDemoSettings = false
     @AppStorage("weeklyFirst") private var weeklyFirst = true
-    init(model: Model, expanded: Bool = false) {
+    init(model: Model, expanded: Bool = false, productPreview: Bool = false) {
         self.model = model
+        self.productPreview = productPreview && model.isDemo && CommandLine.arguments.contains("--render-preview")
         _showDemoSettings = State(initialValue: expanded)
     }
     private var active: Profile? { model.profiles.first { $0.id == model.current } }
@@ -57,14 +60,14 @@ struct Panel: View {
                 if model.recovery {
                     Button(L10n.text("이전 로그인 복구"), action: model.restore).buttonStyle(.borderedProminent).tint(Palette.accent).disabled(model.busy)
                 }
-                if !model.isDemo {
+                if !model.isDemo || productPreview {
                     Button(action: model.saveCurrent) {
                         Label(L10n.text("현재 로그인 계정 추가"), systemImage: "plus").font(.system(size: 13, weight: .medium)).frame(maxWidth: .infinity).padding(.vertical, 5)
                     }.buttonStyle(.bordered).disabled(model.busy)
                 }
             }.padding(.horizontal, 12).padding(.bottom, 12)
             Spacer(minLength: 0)
-            if model.isDemo { demoArea }
+            if model.isDemo && !productPreview { demoArea }
             footer
         }
         .frame(width: PanelLayout.width)
@@ -80,7 +83,7 @@ struct Panel: View {
                 .frame(width: 26, height: 26).background(Color.primary, in: RoundedRectangle(cornerRadius: 10))
             Text("Codex Switch").font(.system(size: 14, weight: .semibold, design: .rounded)).tracking(-0.4)
             Spacer()
-            if model.isDemo {
+            if model.isDemo && !productPreview {
                 Text("DEMO").font(.system(size: 9, weight: .bold, design: .monospaced)).tracking(1)
                     .foregroundStyle(.secondary).padding(.horizontal, 8).padding(.vertical, 5)
                     .overlay(Capsule().strokeBorder(Palette.line)).accessibilityLabel(L10n.text("데모 모드"))
@@ -92,7 +95,7 @@ struct Panel: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Circle().fill(Palette.accent).frame(width: 5, height: 5)
-                Text(model.isDemo ? L10n.text("현재 선택한 데모 계정") : L10n.text("현재 로그인 계정"))
+                Text(model.isDemo && !productPreview ? L10n.text("현재 선택한 데모 계정") : L10n.text("현재 로그인 계정"))
                     .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.accent)
                 Spacer()
                 options(profile)
@@ -117,7 +120,7 @@ struct Panel: View {
                         quotaMeter(window, fallback: window.title)
                     }
                 }
-                Text(usage.isDemo ? L10n.text("샘플 사용량 · 한국 시간 (KST)") : usage.isStale(at: Date()) ? L10n.text("마지막 확인 값 · 새로고침 필요") : L10n.format("마지막 확인 %@", String(usage.observedAt.formatted(date: .omitted, time: .shortened))))
+                Text(productPreview ? L10n.text("한국 시간 (KST)") : usage.isDemo ? L10n.text("샘플 사용량 · 한국 시간 (KST)") : usage.isStale(at: Date()) ? L10n.text("마지막 확인 값 · 새로고침 필요") : L10n.format("마지막 확인 %@", String(usage.observedAt.formatted(date: .omitted, time: .shortened))))
                     .font(.system(size: 10)).foregroundStyle(.secondary)
             } else {
                 Text(L10n.text("사용량 미확인 · 실시간 조회 연결 전")).font(.system(size: 11)).foregroundStyle(.secondary)
@@ -214,7 +217,7 @@ struct Panel: View {
             return "\(window.title) \(percent.map { "\(Int($0.rounded(.down)))%" } ?? "—")"
         }.joined(separator: " · ")
         if usage.isStale(at: Date()) { return L10n.text("오래된 값 · 새로고침 필요") + " · " + text }
-        return text.isEmpty ? L10n.text("사용량 미확인") : (usage.isDemo ? L10n.text("샘플 · ") : L10n.text("마지막 확인 · ")) + text + L10n.text(" 남음")
+        return text.isEmpty ? L10n.text("사용량 미확인") : (productPreview ? "" : usage.isDemo ? L10n.text("샘플 · ") : L10n.text("마지막 확인 · ")) + text + L10n.text(" 남음")
     }
     private func orderedWindows(_ usage: UsageSnapshot) -> [UsageWindow] {
         guard weeklyFirst else { return usage.windows }
