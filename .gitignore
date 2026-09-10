@@ -1,0 +1,15 @@
+.build/
+dist/
+.DS_Store
+auth.json
+*.auth.json
+.env
+.env.*
+!.env.example
+.swiftpm/
+*.p12
+*.pfx
+*.key
+*.pem
+*.mobileprovision
+*.log
