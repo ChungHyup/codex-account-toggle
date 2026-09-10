@@ -61,10 +61,9 @@ public struct UsageSnapshot {
     public var preferredWindow: UsageWindow? { windows.first { $0.windowDurationMins == 10080 } ?? windows.first }
 
     public static func demo(profileID: String, index: Int, now: Date = Date()) throws -> UsageSnapshot {
-        let used = index == 0 ? [28, 59] : [8, 24]
+        let used = index == 0 ? 59 : 24
         let data = try JSONSerialization.data(withJSONObject: ["rateLimitsByLimitId": ["codex": [
-            "primary": ["usedPercent": used[0], "windowDurationMins": 300, "resetsAt": now.addingTimeInterval(8400).timeIntervalSince1970],
-            "secondary": ["usedPercent": used[1], "windowDurationMins": 10080, "resetsAt": now.addingTimeInterval(259200).timeIntervalSince1970]
+            "primary": ["usedPercent": used, "windowDurationMins": 10080, "resetsAt": now.addingTimeInterval(259200).timeIntervalSince1970]
         ]]])
         return try parse(data, profileID: profileID, plan: index == 0 ? "plus" : "pro", observedAt: now, isDemo: true)
     }
