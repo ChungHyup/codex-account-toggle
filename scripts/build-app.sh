@@ -6,6 +6,7 @@ app="dist/Codex Switch.app"
 mkdir -p "$app/Contents/MacOS"
 cp .build/release/CodexSwitch "$app/Contents/MacOS/CodexSwitch"
 mkdir -p "$app/Contents/Resources"
+cp LICENSE "$app/Contents/Resources/LICENSE"
 if [[ -d "$app/CodexSwitch_SwitchCore.bundle" ]]; then
   mv "$app/CodexSwitch_SwitchCore.bundle" "$app/Contents/Resources/"
 fi

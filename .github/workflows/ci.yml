@@ -18,7 +18,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Source publication checks
-        run: python3 scripts/check-public.py
+        run: python3 scripts/check-public.py --require-license
       - name: Test synthetic accounts only
         run: swift test --disable-sandbox
       - name: Build app with bundled translations

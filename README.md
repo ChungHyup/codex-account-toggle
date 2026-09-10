@@ -51,4 +51,4 @@ Switching is designed to request a normal quit, confirm Codex processes are gone
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [publication readiness](docs/publication.md). macOS CI runs synthetic tests, source checks, and the app build; its first hosted run is pending repository creation.
 
-**License selection is pending.** The reference project [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) is MIT-licensed; this is a new Swift implementation and does not inherit that license automatically. No reference source is vendored. Choose and add this project's license before public distribution or external contributions.
+Licensed under the [MIT License](LICENSE), copyright © 2026 Chunghyup OH. The reference project [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) is also MIT-licensed. This is a new Swift implementation; no reference source is vendored.

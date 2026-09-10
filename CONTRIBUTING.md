@@ -8,7 +8,7 @@ Keep commits focused. For UI work, render both `--language=en` and `--language=k
 
 Translations live in `Sources/SwitchCore/Resources/en.json` and `ko.json`. Korean source phrases are stable lookup keys. Add the same key to both files and preserve every `%@` placeholder in order. Use `L10n.text` for static strings and `L10n.format` for arguments; do not translate account IDs, user-defined names, or protocol fields. Date formatting lives in `ResetSchedule`; keep Korea time explicit. The language menu applies on the next Switch launch.
 
-This repository does not yet have a selected license. Resolve that before accepting external contributions or publishing a release.
+This project is licensed under the [MIT License](LICENSE). Contributions are provided under the same license.
 
 ## 한국어
 

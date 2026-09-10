@@ -54,4 +54,4 @@ macOS 13 이상에서 동작하는 개인용 메뉴바 계정 전환 앱의 초�
 
 ## 공개 준비
 
-[기여 안내](CONTRIBUTING.md), [보안 안내](SECURITY.md), [변경 기록](CHANGELOG.md), [공개 준비 항목](docs/publication.md)을 참고하세요. 라이선스는 아직 선택 전이며 저장소 업로드도 수행하지 않았습니다.
+[기여 안내](CONTRIBUTING.md), [보안 안내](SECURITY.md), [변경 기록](CHANGELOG.md), [공개 준비 항목](docs/publication.md)을 참고하세요. [MIT 라이선스](LICENSE)를 적용합니다. 저작권자는 Chunghyup OH이며 저장소 업로드는 아직 수행하지 않았습니다.

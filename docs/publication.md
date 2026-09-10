@@ -6,11 +6,12 @@ Prepared locally:
 - Korean/English resources and parity tests; demo-only screenshots.
 - Pull request and issue templates; read-only-permission macOS CI.
 - Synthetic-account test suite and ad-hoc signed local app.
+- MIT license selected by the project owner; full text included in `LICENSE`.
 - Ignore rules and source-only heuristic checks for common secret patterns.
 
 Before making the repository public:
 
-1. Select a license and add its exact text as `LICENSE`. Do not imply this has already been licensed as MIT merely because the reference project uses MIT.
+1. Retain `LICENSE` and the copyright notice in source distributions and packaged releases.
 2. Choose/create the GitHub repository and confirm visibility. No remote has been created or pushed by this preparation work.
 3. Enable private vulnerability reports and secret scanning where available; configure branch protection after CI exists remotely.
 4. Run `python3 scripts/check-public.py --require-license` and the tests. Review staged changes and screenshots manually.

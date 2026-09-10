@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Adopted the MIT License (copyright © 2026 Chunghyup OH).
+
 - macOS menu-bar app with safe demo mode and three synthetic accounts.
 - Account naming, switching coordinator, backup and recovery with fake lifecycle tests.
 - Korean and English interface, dialogs, errors, and reset date formatting.
