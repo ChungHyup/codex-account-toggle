@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
             let expanded = CommandLine.arguments.contains("--settings-preview")
             let hosting = NSHostingView(rootView: Panel(model: model, expanded: expanded).background(Color(nsColor: .windowBackgroundColor)))
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: state || expanded ? 740 : 680), styleMask: [.borderless], backing: .buffered, defer: false)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: PanelLayout.width, height: PanelLayout.height + (state ? 80 : 0) + (expanded ? 44 : 0)), styleMask: [.borderless], backing: .buffered, defer: false)
             window.contentView = hosting
             hosting.layoutSubtreeIfNeeded()
             if let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) {
@@ -51,10 +51,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
         updateMenuTitle()
         popover.behavior = .transient
-        popover.contentSize = NSSize(width: 380, height: 680)
+        popover.contentSize = NSSize(width: PanelLayout.width, height: PanelLayout.height)
         popover.contentViewController = NSHostingController(rootView: Panel(model: model))
         if CommandLine.arguments.contains("--window") && model.isDemo {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: 680), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: PanelLayout.width, height: PanelLayout.height), styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = L10n.text("Codex Switch · 데모")
             window.contentViewController = NSHostingController(rootView: Panel(model: model))
             window.center()

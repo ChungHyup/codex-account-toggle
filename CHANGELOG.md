@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Compacted the menu-bar panel from 380 × 680 to 320 × 540 points with tighter cards, smaller avatars, and inline reset dates.
+
 - Removed the five-hour sample window from demo accounts and refreshed screenshots; demo quota is weekly-only.
 - Prepared a current-account read client with a fake transport, response/identity validation, and stale-cache handling; live transport remains disconnected.
 - Added weekly-first ordering, demo-labeled menu-bar quota, and dismissible notices after a source-based competitor review.
