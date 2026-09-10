@@ -1,0 +1,12 @@
+# Changelog
+
+## Unreleased
+
+- macOS menu-bar app with safe demo mode and three synthetic accounts.
+- Account naming, switching coordinator, backup and recovery with fake lifecycle tests.
+- Korean and English interface, dialogs, errors, and reset date formatting.
+- Usage and plan presentation with explicit sample/unknown states; absent quota windows are hidden.
+- Korea-time reset dates and countdowns, including expired and unknown states.
+- Publication documentation, contributor templates, and macOS CI configuration.
+
+Not yet shipped: Windows support, production account-switch verification, live usage collection, Developer ID signing, notarization, and an automatic updater.

@@ -1,47 +1,54 @@
 # Codex Switch
 
-macOS 13 이상에서 동작하는 개인용 메뉴바 계정 전환 앱의 초기 버전입니다. Windows 시스템 트레이 버전은 아직 구현하지 않았습니다.
+[English](README.md) · [한국어](README.ko.md)
 
-## 실행
+A small macOS menu-bar utility for choosing between saved Codex accounts. Built with SwiftUI and AppKit. **Experimental and demo-first; not affiliated with OpenAI.**
 
-`bash scripts/build-app.sh`로 빌드한 뒤 `dist/Codex Switch.app`을 Finder에서 더블 클릭하세요. 메뉴바의 순환 화살표 아이콘으로 계정 목록을 엽니다. **기본 실행은 데모 모드입니다.** 개발 시 `swift test --disable-sandbox`로 테스트할 수 있습니다.
+![English demo](docs/screenshots/demo-en.png)
 
-## 데모 모드
+## What works today
 
-요금제 배지, 단기/주간 잔여 사용 한도 %, 초기화까지 남은 시간을 표시합니다. 현재 데이터는 명시적으로 표시한 샘플이며 실시간 계정 조회는 아직 연결하지 않았습니다. '남음'은 토큰 잔액이 아니라 해당 시간 구간의 사용 한도 비율입니다. 실제 응답의 windowDurationMins로 구간 이름을 정하며, 누락값은 미확인, 초기화 시각이 지난 값은 새로고침 필요로 표시합니다.
+- Three synthetic accounts in demo mode, account renaming, and simulated switching/recovery.
+- Korean and English UI, light/dark themes, and visible account management menus.
+- Sample plan badges, remaining quota percentages, and exact reset dates/countdowns in Korea time (KST).
+- Core tests for credential-file validation, private file permissions, backups, recovery, dates, and translations.
 
-공식 응답 형식의 파서와 UI는 구현했습니다. 실계정 데이터 수집 연결, 계정별 응답 귀속 확인, 갱신 시 인증정보 변경 여부 검증은 남아 있습니다. 로그인 파일이나 기존 세션 로그를 실제로 읽어 사용량을 수집하지 않았습니다.
+## Important limits
 
-개인·업무·사이드 프로젝트 가상 계정 3개가 표시됩니다. 계정을 클릭하면 임시 폴더 안의 가짜 인증 파일만 전환합니다. 실제 로그인 파일, 프로필 저장 폴더, Codex 프로세스에는 접근하지 않습니다. 실행할 때마다 새 임시 작업 공간이 생성됩니다.
+The default app never accesses real sign-in files or controls Codex. Usage and plans are **samples**, not live account readings. Quota windows are shown only when present in the supplied data; a five-hour limit is not assumed for every account. A quota percentage is not a token balance.
 
-하단 데모 설정에서 정상 전환, 종료 거부, 재실행 실패 후 복구를 선택할 수 있습니다. 계정 이름은 각 계정의 `···` 메뉴로 바꿉니다. 데모에는 실제 로그인 저장·가져오기 기능을 노출하지 않습니다. `--window` 실행 인수는 데모 패널을 별도 창으로 엽니다.
+Real switching exists behind an explicit `--live` argument but is **not end-to-end validated**. It targets file-based ChatGPT credentials and the `com.openai.codex` app identifier. Keychain/auto/ephemeral credentials, API-key sign-in, Windows, production signing/notarization, and live usage collection are not supported. Do not use real sessions in development or automated testing.
 
-`--render-preview`는 같은 SwiftUI 화면을 `dist/demo-preview.png`에 렌더링하고 종료합니다. 실제 앱 제어 및 실계정 접근을 수행하지 않습니다.
+## Build and try the demo
 
-## 실사용 기능 (개발 중 테스트 금지)
+Requires macOS 13+, Swift 5.9+, and Xcode Command Line Tools. No third-party package dependencies.
 
-실사용 경로는 명시적인 `--live` 실행 인수로만 활성화됩니다. 개발·테스트 중 이 인수로 실행하지 마세요. 실제 계정 전환 테스트는 사용자 명시 요청 전까지 금지합니다. 아래는 실사용 경로의 동작 설명이며, 현재 검증 완료를 의미하지 않습니다.
+```sh
+swift test --disable-sandbox
+bash scripts/build-app.sh
+```
 
-1. Codex에 첫 계정으로 로그인하고 **현재 로그인 계정 저장**을 누릅니다.
-2. Codex에서 다른 계정으로 로그인한 뒤 다시 저장합니다. 기존 auth.json 파일 가져오기도 가능합니다. 브라우저 로그인 자체를 대신 수행하는 기능은 없습니다.
-3. 목록에서 계정을 선택하고 모든 작업이 끝났음을 확인합니다. 앱은 Codex 정상 종료를 요청하고, CLI까지 종료된 것을 확인한 후 로그인만 교체하고 재실행합니다.
+Open `dist/Codex Switch.app`, then click its circular-arrows menu-bar icon. Choose a demo account. The lower settings control simulates success, refused quit, or launch failure/recovery. Use each account's `…` menu to rename it.
 
-## 지원 범위와 현재 제약
+The language follows macOS (Korean, otherwise English). The gear menu lets you choose System, 한국어, or English; reopen **Switch** to apply. This never requires restarting Codex. Date labels are localized while their timezone stays explicitly KST.
 
-- `com.openai.codex` macOS 앱 및 파일 기반 ChatGPT 인증을 대상으로 합니다. OS 키체인/auto/ephemeral 저장, API 키 로그인은 지원하지 않습니다.
-- 현재 개발 컴퓨터의 `/Applications/ChatGPT.app`은 번들 식별자가 `com.openai.codex`임을 확인했습니다. 파일명 대신 이 식별자로 앱을 찾습니다. 실제 계정 전환 호환성은 아직 검증하지 않았습니다.
-- 실행 중인 작업의 상태를 조회하는 공개 API를 연결하지 않았습니다. 사용자가 완료 여부를 확인하고, 앱은 종료 후 남은 Codex 프로세스를 검사합니다. 강제 종료하지 않습니다.
-- UI의 '현재' 표시는 로컬 로그인 파일 기준입니다. 재실행 성공은 서버 로그인 성공을 의미하지 않습니다. 만료·취소된 토큰은 Codex에서 재로그인이 필요합니다.
-- 실제 계정 전환 및 프로젝트·대화 보존은 아직 실기기 통합 테스트가 필요합니다. 자동 테스트는 임시 파일만 사용합니다.
+For deterministic visual checks:
 
-## 로컬 저장과 복구
+```sh
+'dist/Codex Switch.app/Contents/MacOS/CodexSwitch' --render-preview --language=en
+'dist/Codex Switch.app/Contents/MacOS/CodexSwitch' --render-preview --language=ko --dark
+```
 
-기본 `~/.codex/auth.json` 또는 실행 환경의 `CODEX_HOME/auth.json`을 사용합니다. 계정 사본은 `~/Library/Application Support/CodexSwitch`에 저장합니다. 폴더 0700, 파일 0600 권한의 **평문**이므로 macOS 로그인 사용자와 관리자에게는 읽힐 수 있습니다. 네트워크 요청, 토큰 로그, 사용량 조회를 구현하지 않았습니다.
+These render synthetic data only. `--window` opens the demo in a small standalone window. Demo workspaces are created under the system temporary directory and are not committed.
 
-로그인 교체 전 `recovery.auth.json`을 보존합니다. 교체/실행 실패 시 Codex 프로세스가 없을 때 복구합니다. 실행 중이거나 앱이 중단되면 복구 파일을 유지하고 다음 실행에서 복구 버튼을 표시합니다. Codex와 CLI를 종료한 후 복구하세요. 재실행에 성공하면 임시 복구 파일을 삭제합니다.
+## Credential handling
 
-프로젝트, 대화, 스킬, 설정 파일은 변경하지 않습니다. 설정 파일은 인증 저장 방식 확인 목적으로만 읽습니다. 다른 앱·CLI가 동시에 인증을 변경하는 상황은 지원하지 않습니다.
+Experimental live mode reads `CODEX_HOME/auth.json` (default `~/.codex/auth.json`) and stores snapshots under `~/Library/Application Support/CodexSwitch`. Files are plaintext with mode 0600; the directory uses 0700. This is file-permission protection, not encryption. The app itself has no telemetry or network client. Project/session/skill/config files are not intentionally modified.
 
-## 참고
+Switching is designed to request a normal quit, confirm Codex processes are gone, back up the prior sign-in, replace the file, and reopen the app. Recovery is deferred when a process may still be using credentials. These file-level checks do not prove successful server authentication. See [security notes](SECURITY.md) and [implementation review](docs/review.md).
 
-구현 검토: [docs/review.md](docs/review.md). 코드 서명은 로컬 ad-hoc이며 개발자 서명/공증·배포 설치 프로그램·Windows 지원은 포함하지 않습니다.
+## Contributing and publication
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [publication readiness](docs/publication.md). macOS CI runs synthetic tests, source checks, and the app build; its first hosted run is pending repository creation.
+
+**License selection is pending.** The reference project [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) is MIT-licensed; this is a new Swift implementation and does not inherit that license automatically. No reference source is vendored. Choose and add this project's license before public distribution or external contributions.

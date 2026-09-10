@@ -1,0 +1,27 @@
+name: macOS checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: macos-14
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Source publication checks
+        run: python3 scripts/check-public.py
+      - name: Test synthetic accounts only
+        run: swift test --disable-sandbox
+      - name: Build app with bundled translations
+        run: bash scripts/build-app.sh
+      - name: Verify local app signature
+        run: codesign --verify --strict 'dist/Codex Switch.app'

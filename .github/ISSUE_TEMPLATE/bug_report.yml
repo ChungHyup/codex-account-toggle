@@ -1,0 +1,27 @@
+name: Bug report / 버그 제보
+description: Report a reproducible issue without account data.
+body:
+  - type: markdown
+    attributes:
+      value: "Do not attach auth.json, tokens, session logs, or real account screenshots. / 인증정보와 실제 계정 자료를 첨부하지 마세요."
+  - type: input
+    id: environment
+    attributes:
+      label: Environment / 실행 환경
+      description: macOS version, chip (Apple Silicon/Intel), app commit, language.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps / 재현 방법
+      description: Prefer demo mode; include expected and actual behavior.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy / 개인정보
+      options:
+        - label: This report contains no credentials or private account data.
+          required: true
