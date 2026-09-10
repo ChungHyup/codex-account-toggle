@@ -98,5 +98,17 @@
   "%@일": "%@d",
   "%@시간": "%@h",
   "%@분": "%@m",
-  "요금제 미확인": "Plan unavailable"
+  "요금제 미확인": "Plan unavailable",
+  "조회 응답을 확인할 수 없습니다.": "The account response could not be verified.",
+  "사용량 조회에 실패했습니다. 이전 확인 값은 유지됩니다.": "Usage refresh failed. Previous readings are preserved.",
+  "로그인된 계정을 확인하지 못했습니다.": "No signed-in account could be confirmed.",
+  "현재 인증 방식의 사용량 조회는 지원하지 않습니다.": "Usage is not supported for this authentication method.",
+  "조회 중 계정이 달라져 결과를 표시하지 않았습니다.": "The account changed during refresh. The result was discarded.",
+  "안전한 실시간 조회 연결을 준비 중입니다.": "A safe live-data connection is not yet available.",
+  "주간 우선 표시": "Show weekly usage first",
+  "메뉴바에 잔여량 표시": "Show remaining quota in menu bar",
+  "조회 연결 준비 중": "Live connection pending",
+  "읽기 전용 연결 검증 전 · 샘플 데이터": "Read-only connection under review · Sample data",
+  "안내 닫기": "Dismiss message",
+  "오래된 값 · 새로고침 필요": "Stale reading · Refresh needed"
 }

@@ -16,6 +16,7 @@ struct Panel: View {
     @ObservedObject var model: Model
     @Environment(\.colorScheme) private var colorScheme
     @State private var showDemoSettings = false
+    @AppStorage("weeklyFirst") private var weeklyFirst = true
     init(model: Model, expanded: Bool = false) {
         self.model = model
         _showDemoSettings = State(initialValue: expanded)
@@ -107,8 +108,9 @@ struct Panel: View {
             Rectangle().fill(Palette.accent.opacity(0.12)).frame(height: 1)
             if let usage = model.usage[profile.id] {
                 HStack(alignment: .top, spacing: 16) {
-                    if let primary = usage.limit?.primary { quotaMeter(primary, fallback: primary.title) }
-                    if let secondary = usage.limit?.secondary { quotaMeter(secondary, fallback: secondary.title) }
+                    ForEach(Array(orderedWindows(usage).enumerated()), id: \.offset) { _, window in
+                        quotaMeter(window, fallback: window.title)
+                    }
                 }
                 Text(usage.isDemo ? L10n.text("샘플 사용량 · 한국 시간 (KST)") : usage.isStale(at: Date()) ? L10n.text("마지막 확인 값 · 새로고침 필요") : L10n.format("마지막 확인 %@", String(usage.observedAt.formatted(date: .omitted, time: .shortened))))
                     .font(.system(size: 10)).foregroundStyle(.secondary)
@@ -203,12 +205,17 @@ struct Panel: View {
     }
 
     private func compactUsage(_ usage: UsageSnapshot) -> String {
-        let windows = [usage.limit?.primary, usage.limit?.secondary].compactMap { $0 }
+        let windows = orderedWindows(usage)
         let text = windows.map { window in
             let percent = window.resetPassed(at: Date()) ? nil : window.remainingPercent
             return "\(window.title) \(percent.map { "\(Int($0.rounded(.down)))%" } ?? "—")"
         }.joined(separator: " · ")
+        if usage.isStale(at: Date()) { return L10n.text("오래된 값 · 새로고침 필요") + " · " + text }
         return text.isEmpty ? L10n.text("사용량 미확인") : (usage.isDemo ? L10n.text("샘플 · ") : L10n.text("마지막 확인 · ")) + text + L10n.text(" 남음")
+    }
+    private func orderedWindows(_ usage: UsageSnapshot) -> [UsageWindow] {
+        guard weeklyFirst else { return usage.windows }
+        return usage.windows.filter { $0.windowDurationMins == 10080 } + usage.windows.filter { $0.windowDurationMins != 10080 }
     }
 
     private func options(_ profile: Profile) -> some View {
@@ -223,6 +230,11 @@ struct Panel: View {
             if model.busy { ProgressView().controlSize(.small) }
             else { Image(systemName: model.notice == .error ? "exclamationmark.circle" : "checkmark.circle").font(.system(size: 13)) }
             Text(model.message).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
+            if !model.busy && !model.recovery {
+                Spacer(minLength: 0)
+                Button { model.notice = .neutral } label: { Image(systemName: "xmark").frame(width: 22, height: 22) }
+                    .buttonStyle(.plain).accessibilityLabel(L10n.text("안내 닫기"))
+            }
         }.foregroundStyle(model.notice == .error ? Palette.warning : Palette.accent)
             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .background((model.notice == .error ? Palette.warning : Palette.accent).opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
@@ -260,6 +272,10 @@ struct Panel: View {
             Button(action: model.refresh) { Image(systemName: "arrow.clockwise").frame(width: 26, height: 26) }
                 .buttonStyle(.plain).help(L10n.text("계정 새로고침")).accessibilityLabel(L10n.text("계정 새로고침")).disabled(model.busy)
             Menu {
+                Text(L10n.text("조회 연결 준비 중"))
+                Toggle(L10n.text("주간 우선 표시"), isOn: $weeklyFirst)
+                Toggle(L10n.text("메뉴바에 잔여량 표시"), isOn: $model.menuUsageEnabled)
+                Divider()
                 Menu("Language / 언어") {
                     Button("System / 시스템") { UserDefaults.standard.removeObject(forKey: "appLanguage") }
                     Button("한국어") { UserDefaults.standard.set("ko", forKey: "appLanguage") }

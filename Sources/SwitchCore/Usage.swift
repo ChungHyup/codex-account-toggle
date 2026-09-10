@@ -57,6 +57,8 @@ public struct UsageSnapshot {
         }
     }
     public func isStale(at date: Date) -> Bool { date.timeIntervalSince(observedAt) > 300 }
+    public var windows: [UsageWindow] { [limit?.primary, limit?.secondary].compactMap { $0 } }
+    public var preferredWindow: UsageWindow? { windows.first { $0.windowDurationMins == 10080 } ?? windows.first }
 
     public static func demo(profileID: String, index: Int, now: Date = Date()) throws -> UsageSnapshot {
         let used = index == 0 ? [28, 59] : [8, 24]

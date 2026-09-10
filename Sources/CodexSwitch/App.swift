@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import SwitchCore
+import Combine
 
 @main
 struct SwitchApp: App {
@@ -14,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = Model()
     let popover = NSPopover()
     var previewWindow: NSWindow?
+    private var subscriptions = Set<AnyCancellable>()
     func applicationDidFinishLaunching(_ notification: Notification) {
         if CommandLine.arguments.contains("--render-preview") {
             guard model.isDemo else { NSApp.terminate(nil); return }
@@ -39,10 +41,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let peers = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "local.codexswitch.menubar")
         if peers.count > 1 { NSApp.terminate(nil); return }
         NSApp.setActivationPolicy(.accessory)
-        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Switch")
         item.button?.target = self
         item.button?.action = #selector(toggle)
+        model.$usage.combineLatest(model.$current, model.$menuUsageEnabled)
+            .receive(on: RunLoop.main).sink { [weak self] _, _, _ in self?.updateMenuTitle() }.store(in: &subscriptions)
+        Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+            .sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
+        updateMenuTitle()
         popover.behavior = .transient
         popover.contentSize = NSSize(width: 380, height: 680)
         popover.contentViewController = NSHostingController(rootView: Panel(model: model))
@@ -63,6 +70,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
     }
+    private func updateMenuTitle() {
+        guard model.menuUsageEnabled else { item.button?.title = ""; return }
+        let snapshot = model.current.flatMap { model.usage[$0] }
+        let window = snapshot?.preferredWindow
+        let remaining = window?.resetPassed(at: Date()) == true ? nil : window?.remainingPercent
+        let value = remaining.map { "\(Int($0.rounded(.down)))%" } ?? "—"
+        let stale = snapshot?.isStale(at: Date()) == true ? "~" : ""
+        item.button?.title = " " + (model.isDemo ? "D " : "") + stale + value
+        item.button?.toolTip = (model.isDemo ? L10n.text("샘플 · ") : "") + (window?.title ?? L10n.text("사용 한도")) + " · " + value + L10n.text(" 남음")
+    }
 }
 
 @MainActor
@@ -75,6 +92,7 @@ final class Model: ObservableObject {
     @Published var recovery = false
     @Published var scenario: DemoScenario = .success
     @Published var usage: [String: UsageSnapshot] = [:]
+    @Published var menuUsageEnabled = true
     let store: Store
     let isDemo: Bool
     let lifecycle: AppLifecycle

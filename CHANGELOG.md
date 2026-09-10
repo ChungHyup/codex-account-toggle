@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Prepared a current-account read client with a fake transport, response/identity validation, and stale-cache handling; live transport remains disconnected.
+- Added weekly-first ordering, demo-labeled menu-bar quota, and dismissible notices after a source-based competitor review.
+
 - Adopted the MIT License (copyright © 2026 Chunghyup OH).
 
 - macOS menu-bar app with safe demo mode and three synthetic accounts.

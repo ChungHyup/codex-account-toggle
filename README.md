@@ -11,7 +11,10 @@ A small macOS menu-bar utility for choosing between saved Codex accounts. Built 
 - Three synthetic accounts in demo mode, account renaming, and simulated switching/recovery.
 - Korean and English UI, light/dark themes, and visible account management menus.
 - Sample plan badges, remaining quota percentages, and exact reset dates/countdowns in Korea time (KST).
+- Weekly-first display and optional menu-bar quota (`D` marks demo data; `~` marks an old reading).
 - Core tests for credential-file validation, private file permissions, backups, recovery, dates, and translations.
+
+The [current-account reader](docs/read-only-connection.md) is prepared and tested with synthetic responses; its production transport remains disconnected. See the [account-switcher benchmark](docs/benchmark.md) for adopted behaviors and follow-up work.
 
 ## Important limits
 
