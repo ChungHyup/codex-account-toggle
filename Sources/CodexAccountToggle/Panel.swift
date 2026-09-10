@@ -81,7 +81,7 @@ struct Panel: View {
             Image(systemName: "arrow.triangle.2.circlepath")
                 .font(.system(size: 15, weight: .semibold)).foregroundStyle(Palette.canvas)
                 .frame(width: 26, height: 26).background(Color.primary, in: RoundedRectangle(cornerRadius: 10))
-            Text("Codex Switch").font(.system(size: 14, weight: .semibold, design: .rounded)).tracking(-0.4)
+            Text("Codex Account Toggle").font(.system(size: 14, weight: .semibold, design: .rounded)).tracking(-0.4)
             Spacer()
             if model.isDemo && !productPreview {
                 Text("DEMO").font(.system(size: 9, weight: .bold, design: .monospaced)).tracking(1)
@@ -286,11 +286,11 @@ struct Panel: View {
                     Button("System / 시스템") { UserDefaults.standard.removeObject(forKey: "appLanguage") }
                     Button("한국어") { UserDefaults.standard.set("ko", forKey: "appLanguage") }
                     Button("English") { UserDefaults.standard.set("en", forKey: "appLanguage") }
-                    Text("Restart Switch to apply / 재실행 후 적용")
+                    Text("Restart app to apply / 재실행 후 적용")
                 }
                 Divider()
                 if !model.isDemo { Button(L10n.text("로그인 파일 가져오기…"), action: model.importAccount) }
-                Button(L10n.text("Codex Switch 종료")) { NSApp.terminate(nil) }
+                Button(L10n.text("Codex Account Toggle 종료")) { NSApp.terminate(nil) }
             } label: { Image(systemName: "gearshape").frame(width: 26, height: 26) }
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help(L10n.text("앱 설정")).accessibilityLabel(L10n.text("앱 설정")).disabled(model.busy)
         }.font(.system(size: 12)).foregroundStyle(.secondary).padding(.horizontal, 12).padding(.vertical, 4)

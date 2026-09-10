@@ -1,6 +1,8 @@
-# Codex Switch
+# Codex Account Toggle
 
 [English](README.md) · [한국어](README.ko.md)
+
+**Switch Codex accounts from your menu bar.**
 
 A small macOS menu-bar utility for choosing between saved Codex accounts. Built with SwiftUI and AppKit. **Experimental and demo-first; not affiliated with OpenAI.**
 
@@ -31,15 +33,15 @@ swift test --disable-sandbox
 bash scripts/build-app.sh
 ```
 
-Open `dist/Codex Switch.app`, then click its circular-arrows menu-bar icon. Choose a demo account. The lower settings control simulates success, refused quit, or launch failure/recovery. Use each account's `…` menu to rename it.
+Open `dist/Codex Account Toggle.app`, then click its circular-arrows menu-bar icon. Choose a demo account. The lower settings control simulates success, refused quit, or launch failure/recovery. Use each account's `…` menu to rename it.
 
-The language follows macOS (Korean, otherwise English). The gear menu lets you choose System, 한국어, or English; reopen **Switch** to apply. This never requires restarting Codex. Date labels are localized while their timezone stays explicitly KST.
+The language follows macOS (Korean, otherwise English). The gear menu lets you choose System, 한국어, or English; reopen **Codex Account Toggle** to apply. This never requires restarting Codex. Date labels are localized while their timezone stays explicitly KST.
 
 For deterministic visual checks:
 
 ```sh
-'dist/Codex Switch.app/Contents/MacOS/CodexSwitch' --render-preview --language=en
-'dist/Codex Switch.app/Contents/MacOS/CodexSwitch' --render-preview --language=ko --dark
+'dist/Codex Account Toggle.app/Contents/MacOS/CodexAccountToggle' --render-preview --language=en
+'dist/Codex Account Toggle.app/Contents/MacOS/CodexAccountToggle' --render-preview --language=ko --dark
 ```
 
 These render synthetic data only. `--window` opens the demo in a small standalone window. Demo workspaces are created under the system temporary directory and are not committed.
@@ -57,3 +59,5 @@ Switching is designed to request a normal quit, confirm Codex processes are gone
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [publication readiness](docs/publication.md). macOS CI runs synthetic tests, source checks, and the app build; its first hosted run is pending repository creation.
 
 Licensed under the [MIT License](LICENSE), copyright © 2026 Chunghyup OH. The reference project [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) is also MIT-licensed. This is a new Swift implementation; no reference source is vendored.
+
+The app was formerly named Codex Switch. Its profile directory retains that name for compatibility; no credential migration is performed. With an old-name instance open, quit that utility yourself before opening the renamed app. The new app identifier starts with default preferences.

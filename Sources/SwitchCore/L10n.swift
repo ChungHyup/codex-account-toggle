@@ -14,7 +14,7 @@ public enum L10n {
     private static let catalogs: [AppLanguage: [String: String]] = {
         var values: [AppLanguage: [String: String]] = [:]
         // Packaged apps use the standard resource directory; SwiftPM tests use Bundle.module.
-        let packaged = Bundle.main.resourceURL?.appendingPathComponent("CodexSwitch_SwitchCore.bundle")
+        let packaged = Bundle.main.resourceURL?.appendingPathComponent("CodexAccountToggle_SwitchCore.bundle")
         let bundle = packaged.flatMap { Bundle(url: $0) } ?? Bundle.module
         for language in AppLanguage.allCases {
             guard let url = bundle.url(forResource: language.rawValue, withExtension: "json"),

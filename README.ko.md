@@ -1,16 +1,18 @@
-# Codex Switch
+# Codex Account Toggle
 
 [English](README.md) · [한국어](README.ko.md)
 
+**메뉴바에서 Codex 계정을 전환하세요.**
+
 ![한국어 데모](docs/screenshots/demo-ko.png)
 
-한국어·영어 UI를 지원합니다. 시스템 언어를 따르며 설정 메뉴에서 변경할 수 있습니다. 변경 후 Switch만 재실행하면 적용됩니다. 날짜 표시는 선택한 언어를 따르며 시간대는 한국 시간(KST)을 유지합니다.
+한국어·영어 UI를 지원합니다. 시스템 언어를 따르며 설정 메뉴에서 변경할 수 있습니다. 변경 후 Codex Account Toggle만 재실행하면 적용됩니다. 날짜 표시는 선택한 언어를 따르며 시간대는 한국 시간(KST)을 유지합니다.
 
 macOS 13 이상에서 동작하는 개인용 메뉴바 계정 전환 앱의 초기 버전입니다. Windows 시스템 트레이 버전은 아직 구현하지 않았습니다.
 
 ## 실행
 
-`bash scripts/build-app.sh`로 빌드한 뒤 `dist/Codex Switch.app`을 Finder에서 더블 클릭하세요. 메뉴바의 순환 화살표 아이콘으로 계정 목록을 엽니다. **기본 실행은 데모 모드입니다.** 개발 시 `swift test --disable-sandbox`로 테스트할 수 있습니다.
+`bash scripts/build-app.sh`로 빌드한 뒤 `dist/Codex Account Toggle.app`을 Finder에서 더블 클릭하세요. 메뉴바의 순환 화살표 아이콘으로 계정 목록을 엽니다. **기본 실행은 데모 모드입니다.** 개발 시 `swift test --disable-sandbox`로 테스트할 수 있습니다.
 
 ## 데모 모드
 
@@ -57,3 +59,5 @@ macOS 13 이상에서 동작하는 개인용 메뉴바 계정 전환 앱의 초�
 ## 공개 준비
 
 [기여 안내](CONTRIBUTING.md), [보안 안내](SECURITY.md), [변경 기록](CHANGELOG.md), [공개 준비 항목](docs/publication.md)을 참고하세요. [MIT 라이선스](LICENSE)를 적용합니다. 저작권자는 Chunghyup OH이며 저장소 업로드는 아직 수행하지 않았습니다.
+
+이전 앱 이름은 Codex Switch입니다. 계정 저장 경로는 호환성을 위해 유지하며 인증정보를 이동하지 않습니다. 이전 이름의 유틸리티가 열려 있으면 직접 종료한 뒤 새 앱을 여세요. 새 앱 식별자에서는 언어·표시 설정이 기본값으로 시작합니다.

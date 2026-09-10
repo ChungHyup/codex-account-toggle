@@ -24,4 +24,4 @@ jobs:
       - name: Build app with bundled translations
         run: bash scripts/build-app.sh
       - name: Verify local app signature
-        run: codesign --verify --strict 'dist/Codex Switch.app'
+        run: codesign --verify --strict 'dist/Codex Account Toggle.app'

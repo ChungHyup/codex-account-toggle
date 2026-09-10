@@ -39,11 +39,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
-        let peers = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "local.codexswitch.menubar")
-        if peers.count > 1 { NSApp.terminate(nil); return }
+        // A previous-name instance may still be open; never terminate or run alongside it.
+        let peers = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "com.chunghyup.codex-account-toggle")
+        let legacyPeers = NSRunningApplication.runningApplications(withBundleIdentifier: "local.codexswitch.menubar")
+        if peers.count > 1 || !legacyPeers.isEmpty { NSApp.terminate(nil); return }
         NSApp.setActivationPolicy(.accessory)
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Switch")
+        item.button?.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Account Toggle")
         item.button?.target = self
         item.button?.action = #selector(toggle)
         model.$usage.combineLatest(model.$current, model.$menuUsageEnabled)
@@ -56,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentViewController = NSHostingController(rootView: Panel(model: model))
         if CommandLine.arguments.contains("--window") && model.isDemo {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: PanelLayout.width, height: PanelLayout.height), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.title = L10n.text("Codex Switch · 데모")
+            window.title = L10n.text("Codex Account Toggle · 데모")
             window.contentViewController = NSHostingController(rootView: Panel(model: model))
             window.center()
             window.makeKeyAndOrderFront(nil)
@@ -106,6 +108,7 @@ final class Model: ObservableObject {
             lifecycle = DemoLifecycle()
         } else {
             let home = FileManager.default.homeDirectoryForCurrentUser
+            // Preserve the existing storage path; branding must not migrate credentials.
             store = Store(root: home.appendingPathComponent("Library/Application Support/CodexSwitch"), home: ProcessInfo.processInfo.environment["CODEX_HOME"].map { URL(fileURLWithPath: $0) } ?? home.appendingPathComponent(".codex"))
             lifecycle = CodexLifecycle()
         }

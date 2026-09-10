@@ -94,7 +94,7 @@ public final class DemoLifecycle: AppLifecycle {
 public enum DemoWorkspace {
     /// Always creates a fresh directory. Never consults HOME or CODEX_HOME.
     public static func make(in directory: URL = FileManager.default.temporaryDirectory) throws -> Store {
-        let base = directory.appendingPathComponent("CodexSwitch-Demo-" + UUID().uuidString)
+        let base = directory.appendingPathComponent("CodexAccountToggle-Demo-" + UUID().uuidString)
         let home = base.appendingPathComponent("mock-codex")
         try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         let store = Store(root: base.appendingPathComponent("profiles"), home: home)

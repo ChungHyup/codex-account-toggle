@@ -11,7 +11,7 @@ final class CoordinatorTests: XCTestCase {
     }
     func testSuccessfulSwitchUsesOnlyDemoWorkspace() async throws {
         try await withDemo { store, app, coordinator in
-            XCTAssertTrue(store.home.path.contains("CodexSwitch-Demo-"))
+            XCTAssertTrue(store.home.path.contains("CodexAccountToggle-Demo-"))
             XCTAssertEqual(try store.profiles().count, 3)
             let target = try store.profiles()[1]
             try await coordinator.switchTo(target)

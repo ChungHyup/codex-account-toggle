@@ -29,10 +29,10 @@ The three tracked PNGs are renders of our SwiftUI panel with synthetic accounts.
 
 The existing tracked-source heuristic check and localization parity check passed. That check is not a full historical secret scan. No real credentials were read for this review.
 
-## Naming finding
+## Naming decision
 
-The current `Codex Switch` name overlaps directly with [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) and closely with [Codex Switcher](https://www.codexswitch.com/). This is a naming collision, independently of source reuse.
+The former `Codex Switch` name overlaps with [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) and closely with [Codex Switcher](https://www.codexswitch.com/). The owner selected **Codex Account Toggle**, with repository slug `codex-account-toggle` and description “Switch Codex accounts from your menu bar.”
 
-Proposed name, awaiting the owner's choice: **AccountPier**. Suggested repository slug: `accountpier`. Suggested description: “Codex accounts, one click away.” It describes a place to keep and select accounts, without repeating a reference project's name. Searches for `"AccountPier"` and `"Account Pier" app` did not surface an exact competing app in the results reviewed; this does not establish exclusive availability.
+The app, executable, Swift package/target, resource bundle, bundle identifier, build script, CI, UI translations, and screenshots use the selected name. Reference-project names and source links retain their original spelling.
 
-After a name is selected, update UI strings, package/executable/resource bundle names, bundle identifier, build script, docs, CI references, and synthetic screenshots together. Treat stored-profile paths separately: renaming the app must not silently move, inspect, or abandon real credentials. No naming or storage migration was applied in this review.
+The existing `Library/Application Support/CodexSwitch` profile path is deliberately preserved. This rename does not inspect or migrate credentials. The new bundle identifier is `com.chunghyup.codex-account-toggle`; preferences under the old identifier are not migrated. An already running old-name app prevents a second normal instance from starting; the old process is never terminated. The local checkout directory remains unchanged. Repository creation and remote publication are pending.
