@@ -12,7 +12,7 @@ Prepared locally:
 Before making the repository public:
 
 1. Retain `LICENSE` and the copyright notice in source distributions and packaged releases.
-2. Create the planned `codex-account-toggle` GitHub repository and confirm visibility. No remote has been created or pushed by this preparation work.
+2. Keep `ChungHyup/codex-account-toggle` private for owner QA. Public visibility requires a later owner request.
 3. Enable private vulnerability reports and secret scanning where available; configure branch protection after CI exists remotely.
 4. Run `python3 scripts/check-public.py --require-license` and the tests. Review staged changes and screenshots manually.
 5. Be explicit that this is a demo-first experimental project. A public source repository is not a validated production binary release.

@@ -28,9 +28,25 @@ Real switching exists behind an explicit `--live` argument but is **not end-to-e
 
 Requires macOS 13+, Swift 5.9+, and Xcode Command Line Tools. No third-party package dependencies.
 
+On your MacBook, install Xcode Command Line Tools with `xcode-select --install` if needed. Install GitHub CLI (`gh`) and sign in with `gh auth login`, using the GitHub account that has access to this private repository. Then:
+
+```sh
+gh repo clone ChungHyup/codex-account-toggle
+cd codex-account-toggle
+```
+
+
 ```sh
 swift test --disable-sandbox
 bash scripts/build-app.sh
+```
+
+To install for your macOS user, copy the built app into `~/Applications` (create the folder if necessary), or keep it in `dist`:
+
+```sh
+mkdir -p "$HOME/Applications"
+ditto 'dist/Codex Account Toggle.app' "$HOME/Applications/Codex Account Toggle.app"
+open "$HOME/Applications/Codex Account Toggle.app"
 ```
 
 Open `dist/Codex Account Toggle.app`, then click its circular-arrows menu-bar icon. Choose a demo account. The lower settings control simulates success, refused quit, or launch failure/recovery. Use each account's `…` menu to rename it.
@@ -56,8 +72,22 @@ Switching is designed to request a normal quit, confirm Codex processes are gone
 
 ## Contributing and publication
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [publication readiness](docs/publication.md). macOS CI runs synthetic tests, source checks, and the app build; its first hosted run is pending repository creation.
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [publication readiness](docs/publication.md). macOS CI runs synthetic tests, source checks, and the app build; check the repository’s Actions tab for hosted results.
 
 Licensed under the [MIT License](LICENSE), copyright © 2026 Chunghyup OH. The reference project [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) is also MIT-licensed. This is a new Swift implementation; no reference source is vendored.
 
 The app was formerly named Codex Switch. Its profile directory retains that name for compatibility; no credential migration is performed. With an old-name instance open, quit that utility yourself before opening the renamed app. The new app identifier starts with default preferences.
+
+## Manual QA on a separate Mac
+
+Start with the default demo. Check account names, English/Korean, light/dark appearance, weekly quota layout, and the simulated refused-quit/recovery scenarios. Live usage collection is still disconnected: real accounts will not show the sample percentages.
+
+Only when you choose to test your own real accounts, finish your Codex work and close its CLI sessions. Quit **Codex Account Toggle** itself before launching it in the experimental mode below (otherwise the existing demo instance prevents a second instance):
+
+```sh
+open "$HOME/Applications/Codex Account Toggle.app" --args --live
+```
+
+This command is for your manual QA, not automated development tests. Save account A with **Save signed-in account**. Sign in to account B yourself in Codex and save B too. Test B→A→B, verify the account shown inside Codex after each restart, and check project/conversation availability. Cancel a switch confirmation and verify the current account stays selected. If quitting fails, the switch should stop without replacing credentials. Do not force a failure against real credentials; use demo scenarios for recovery testing.
+
+The build is locally ad-hoc signed, not Developer ID signed or notarized. No installer, automatic updater, or Windows binary is provided yet. Double-clicking the app next time starts demo mode again; `--live` is not persisted. Send QA observations without authentication files, tokens, or personal account screenshots.

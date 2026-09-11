@@ -10,6 +10,22 @@
 
 macOS 13 이상에서 동작하는 개인용 메뉴바 계정 전환 앱의 초기 버전입니다. Windows 시스템 트레이 버전은 아직 구현하지 않았습니다.
 
+## 맥북 설치
+
+macOS 13 이상, Swift 5.9 이상이 필요합니다. Xcode Command Line Tools가 없다면 `xcode-select --install`로 설치하세요. GitHub CLI(`gh`)도 설치하고 `gh auth login`으로 비공개 저장소 접근 권한이 있는 계정에 로그인한 뒤 진행합니다.
+
+```sh
+gh repo clone ChungHyup/codex-account-toggle
+cd codex-account-toggle
+swift test --disable-sandbox
+bash scripts/build-app.sh
+mkdir -p "$HOME/Applications"
+ditto 'dist/Codex Account Toggle.app' "$HOME/Applications/Codex Account Toggle.app"
+open "$HOME/Applications/Codex Account Toggle.app"
+```
+
+소스에서 직접 빌드하며 현재 별도 설치 파일이나 자동 업데이트는 없습니다. 로컬 ad-hoc 서명이며 개발자 서명·공증된 배포판은 아닙니다.
+
 ## 실행
 
 `bash scripts/build-app.sh`로 빌드한 뒤 `dist/Codex Account Toggle.app`을 Finder에서 더블 클릭하세요. 메뉴바의 순환 화살표 아이콘으로 계정 목록을 엽니다. **기본 실행은 데모 모드입니다.** 개발 시 `swift test --disable-sandbox`로 테스트할 수 있습니다.
@@ -58,6 +74,20 @@ macOS 13 이상에서 동작하는 개인용 메뉴바 계정 전환 앱의 초�
 
 ## 공개 준비
 
-[기여 안내](CONTRIBUTING.md), [보안 안내](SECURITY.md), [변경 기록](CHANGELOG.md), [공개 준비 항목](docs/publication.md)을 참고하세요. [MIT 라이선스](LICENSE)를 적용합니다. 저작권자는 Chunghyup OH이며 저장소 업로드는 아직 수행하지 않았습니다.
+[기여 안내](CONTRIBUTING.md), [보안 안내](SECURITY.md), [변경 기록](CHANGELOG.md), [공개 준비 항목](docs/publication.md)을 참고하세요. [MIT 라이선스](LICENSE)를 적용합니다. 저작권자는 Chunghyup OH이며 현재 저장소는 개인 QA용 비공개로 운영하며 공개 전환은 추후 결정합니다.
 
 이전 앱 이름은 Codex Switch입니다. 계정 저장 경로는 호환성을 위해 유지하며 인증정보를 이동하지 않습니다. 이전 이름의 유틸리티가 열려 있으면 직접 종료한 뒤 새 앱을 여세요. 새 앱 식별자에서는 언어·표시 설정이 기본값으로 시작합니다.
+
+## 맥북에서 직접 실계정 QA
+
+먼저 기본 데모로 표시·언어·테마·전환 실패 시나리오를 확인하세요. 실시간 사용량은 미연결 상태이므로 실제 계정에서는 샘플 잔여량이 표시되지 않습니다.
+
+두 실제 계정 테스트를 시작할 때는 Codex 작업을 모두 마치고 CLI 세션을 종료하세요. **Codex Account Toggle 유틸리티 자체를 종료**한 다음 아래 명령으로 실행해야 기존 데모 인스턴스와 겹치지 않습니다.
+
+```sh
+open "$HOME/Applications/Codex Account Toggle.app" --args --live
+```
+
+이 명령은 사용자가 직접 선택한 QA용이며 개발 자동화에서 실행하지 않습니다. 계정 A를 저장하고, Codex에서 직접 B에 로그인한 뒤 B도 저장하세요. B→A→B 전환, 재시작 후 Codex 내부의 실제 계정, 프로젝트·대화 유지 여부를 확인하세요. 확인창에서 취소했을 때 기존 계정이 유지되는지도 확인합니다. 실제 계정으로 장애를 억지로 만들지 말고 종료 거부·복구는 데모 시나리오로 검증하세요.
+
+다음에 더블 클릭하면 다시 데모로 시작합니다. `--live` 설정은 저장하지 않습니다. QA 결과에는 인증 파일·토큰·개인 계정 정보가 담긴 스크린샷을 첨부하지 마세요.
