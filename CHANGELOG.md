@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Clarified switch confirmation: running Codex/CLI requires an explicit restart action; Cancel is the default.
+
 - Renamed the app and build artifacts to Codex Account Toggle; preserved the existing profile-storage path.
 
 - Compacted the menu-bar panel from 380 × 680 to 320 × 540 points with tighter cards, smaller avatars, and inline reset dates.

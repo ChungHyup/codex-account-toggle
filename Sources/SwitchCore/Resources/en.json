@@ -111,5 +111,11 @@
   "읽기 전용 연결 검증 전 · 샘플 데이터": "Read-only connection under review · Sample data",
   "안내 닫기": "Dismiss message",
   "오래된 값 · 새로고침 필요": "Stale reading · Refresh needed",
-  "한국 시간 (KST)": "Korea time (KST)"
+  "한국 시간 (KST)": "Korea time (KST)",
+  "계정 전환을 위해 Codex를 다시 열어야 합니다": "Codex needs to restart to switch accounts",
+  "전환할 계정: %@": "Switch to: %@",
+  "Codex 또는 CLI가 실행 중입니다. 진행 중인 작업을 마치고 CLI를 직접 종료하세요. 계속하면 Codex 앱을 정상 종료하고 계정을 전환한 뒤 다시 엽니다. 종료되지 않으면 전환을 중단합니다.": "Codex or its CLI is running. Finish your tasks and close the CLI yourself. Continuing quits the Codex app normally, switches accounts, and reopens it. If it cannot quit, the switch stops.",
+  "계정을 전환한 뒤 Codex를 엽니다. 그 사이 Codex를 실행하면 종료 후 다시 열 수 있으니 새 작업을 시작하지 마세요.": "Codex will open after switching accounts. If you start Codex in the meantime, it may be closed and reopened, so do not start a new task.",
+  "계정 전환 및 재시작": "Switch account and restart",
+  "계정 전환 및 열기": "Switch account and open"
 }

@@ -161,14 +161,25 @@ final class Model: ObservableObject {
         refresh()
     }
     func switchTo(_ profile: Profile) {
-        guard !busy else { return }
+        guard !busy, !recovery, profile.id != current else { return }
         if !isDemo {
+            let running: Bool
+            do { running = try lifecycle.isRunning() }
+            catch { show(error); return }
             let alert = NSAlert()
-            alert.messageText = L10n.format("%@ 계정으로 전환할까요?", String(profile.name))
-            alert.informativeText = L10n.text("모든 Codex 작업과 CLI를 마쳤는지 확인하세요. 계속하면 Codex를 정상 종료하고 로그인 교체 후 다시 엽니다.")
-            alert.addButton(withTitle: L10n.text("작업 완료 · 전환"))
+            alert.alertStyle = running ? .warning : .informational
+            alert.messageText = running
+                ? L10n.text("계정 전환을 위해 Codex를 다시 열어야 합니다")
+                : L10n.format("%@ 계정으로 전환할까요?", String(profile.name))
+            alert.informativeText = L10n.format("전환할 계정: %@", profile.name) + "\n\n" + (running
+                ? L10n.text("Codex 또는 CLI가 실행 중입니다. 진행 중인 작업을 마치고 CLI를 직접 종료하세요. 계속하면 Codex 앱을 정상 종료하고 계정을 전환한 뒤 다시 엽니다. 종료되지 않으면 전환을 중단합니다.")
+                : L10n.text("계정을 전환한 뒤 Codex를 엽니다. 그 사이 Codex를 실행하면 종료 후 다시 열 수 있으니 새 작업을 시작하지 마세요."))
+            // Return selects Cancel; restarting requires an explicit click.
             alert.addButton(withTitle: L10n.text("취소"))
-            guard alert.runModal() == .alertFirstButtonReturn else { return }
+            alert.addButton(withTitle: L10n.text(running ? "계정 전환 및 재시작" : "계정 전환 및 열기"))
+            alert.buttons[0].keyEquivalent = "\r"
+            alert.buttons[1].keyEquivalent = ""
+            guard alert.runModal() == .alertSecondButtonReturn else { return }
         }
         notice = .neutral
         busy = true
