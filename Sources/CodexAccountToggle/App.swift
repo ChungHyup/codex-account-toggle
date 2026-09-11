@@ -20,9 +20,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if CommandLine.arguments.contains("--render-preview") {
             guard model.isDemo else { NSApp.terminate(nil); return }
             let languageSuffix = L10n.language == .english ? "-en" : ""
+            if CommandLine.arguments.contains("--confirmation-preview") {
+                // Offscreen content preview of NSAlert. No process check, modal, or switch is invoked.
+                NSApp.appearance = NSAppearance(named: .aqua)
+                let running = !CommandLine.arguments.contains("--codex-closed")
+                let alert = makeSwitchConfirmation(profileName: "Work", running: running)
+                let view = NSHostingView(rootView: ConfirmationPreview(alert: alert, running: running))
+                let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 360, height: running ? 410 : 360), styleMask: [.borderless], backing: .buffered, defer: false)
+                window.contentView = view
+                view.layoutSubtreeIfNeeded()
+                if let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
+                    view.cacheDisplay(in: view.bounds, to: bitmap)
+                    if let png = bitmap.representation(using: .png, properties: [:]) {
+                        let name = "dist/confirmation-\(running ? "running" : "closed")\(languageSuffix).png"
+                        try? png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(name))
+                    }
+                }
+                NSApp.terminate(nil)
+                return
+            }
             let dark = CommandLine.arguments.contains("--dark")
-            let state = CommandLine.arguments.contains("--error-preview")
-            if state { model.notice = .error; model.message = L10n.text("전환 실패로 이전 로그인을 복구했습니다.") }
+            let blocked = CommandLine.arguments.contains("--quit-blocked-preview")
+            let state = blocked || CommandLine.arguments.contains("--error-preview")
+            if state { model.notice = .error; model.message = L10n.text(blocked ? "Codex가 종료 요청을 거부했습니다. 작업을 끝낸 뒤 다시 시도하세요." : "전환 실패로 이전 로그인을 복구했습니다.") }
             NSApp.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
             let productPreview = CommandLine.arguments.contains("--product-preview")
             let expanded = !productPreview && CommandLine.arguments.contains("--settings-preview")
@@ -33,7 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) {
                 hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
                 if let png = bitmap.representation(using: .png, properties: [:]) {
-                try? png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(productPreview ? "dist/product-preview\(dark ? "-dark" : "")\(languageSuffix).png" : dark ? "dist/demo-preview-dark\(languageSuffix).png" : state ? "dist/demo-preview-error\(languageSuffix).png" : expanded ? "dist/demo-preview-settings\(languageSuffix).png" : "dist/demo-preview\(languageSuffix).png"))
+                try? png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(blocked ? "dist/quit-blocked\(languageSuffix).png" : productPreview ? "dist/product-preview\(dark ? "-dark" : "")\(languageSuffix).png" : dark ? "dist/demo-preview-dark\(languageSuffix).png" : state ? "dist/demo-preview-error\(languageSuffix).png" : expanded ? "dist/demo-preview-settings\(languageSuffix).png" : "dist/demo-preview\(languageSuffix).png"))
                 }
             }
             NSApp.terminate(nil)
@@ -166,19 +186,7 @@ final class Model: ObservableObject {
             let running: Bool
             do { running = try lifecycle.isRunning() }
             catch { show(error); return }
-            let alert = NSAlert()
-            alert.alertStyle = running ? .warning : .informational
-            alert.messageText = running
-                ? L10n.text("계정 전환을 위해 Codex를 다시 열어야 합니다")
-                : L10n.format("%@ 계정으로 전환할까요?", String(profile.name))
-            alert.informativeText = L10n.format("전환할 계정: %@", profile.name) + "\n\n" + (running
-                ? L10n.text("Codex 또는 CLI가 실행 중입니다. 진행 중인 작업을 마치고 CLI를 직접 종료하세요. 계속하면 Codex 앱을 정상 종료하고 계정을 전환한 뒤 다시 엽니다. 종료되지 않으면 전환을 중단합니다.")
-                : L10n.text("계정을 전환한 뒤 Codex를 엽니다. 그 사이 Codex를 실행하면 종료 후 다시 열 수 있으니 새 작업을 시작하지 마세요."))
-            // Return selects Cancel; restarting requires an explicit click.
-            alert.addButton(withTitle: L10n.text("취소"))
-            alert.addButton(withTitle: L10n.text(running ? "계정 전환 및 재시작" : "계정 전환 및 열기"))
-            alert.buttons[0].keyEquivalent = "\r"
-            alert.buttons[1].keyEquivalent = ""
+            let alert = makeSwitchConfirmation(profileName: profile.name, running: running)
             guard alert.runModal() == .alertSecondButtonReturn else { return }
         }
         notice = .neutral
@@ -257,5 +265,47 @@ final class CodexLifecycle: AppLifecycle {
         let url = try codexURL()
         let config = NSWorkspace.OpenConfiguration()
         _ = try await NSWorkspace.shared.openApplication(at: url, configuration: config)
+    }
+}
+
+@MainActor
+func makeSwitchConfirmation(profileName: String, running: Bool) -> NSAlert {
+    let alert = NSAlert()
+    alert.alertStyle = running ? .warning : .informational
+    alert.messageText = running
+        ? L10n.text("계정 전환을 위해 Codex를 다시 열어야 합니다")
+        : L10n.format("%@ 계정으로 전환할까요?", String(profileName))
+    alert.informativeText = L10n.format("전환할 계정: %@", profileName) + "\n\n" + (running
+        ? L10n.text("Codex 또는 CLI가 실행 중입니다. 진행 중인 작업을 마치고 CLI를 직접 종료하세요. 계속하면 Codex 앱을 정상 종료하고 계정을 전환한 뒤 다시 엽니다. 종료되지 않으면 전환을 중단합니다.")
+        : L10n.text("계정을 전환한 뒤 Codex를 엽니다. 그 사이 Codex를 실행하면 종료 후 다시 열 수 있으니 새 작업을 시작하지 마세요."))
+    // Return selects Cancel; restarting requires an explicit click.
+    alert.addButton(withTitle: L10n.text("취소"))
+    alert.addButton(withTitle: L10n.text(running ? "계정 전환 및 재시작" : "계정 전환 및 열기"))
+    alert.buttons[0].keyEquivalent = "\r"
+    alert.buttons[1].keyEquivalent = ""
+    return alert
+}
+
+/// Visual content preview, not a pixel-exact capture of the system-owned modal.
+private struct ConfirmationPreview: View {
+    let alert: NSAlert
+    let running: Bool
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: running ? "exclamationmark.triangle.fill" : "arrow.triangle.2.circlepath")
+                .font(.system(size: 32)).foregroundStyle(running ? Color.orange : Color.accentColor)
+            Text(alert.messageText).font(.system(size: 17, weight: .semibold)).multilineTextAlignment(.center)
+            Text(alert.informativeText).font(.system(size: 12)).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            VStack(spacing: 8) {
+                Text(alert.buttons[0].title).font(.system(size: 13, weight: .medium))
+                    .frame(maxWidth: .infinity).padding(.vertical, 9)
+                    .foregroundStyle(.white).background(Color.accentColor, in: RoundedRectangle(cornerRadius: 7))
+                Text(alert.buttons[1].title).font(.system(size: 13))
+                    .frame(maxWidth: .infinity).padding(.vertical, 9)
+                    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 7))
+            }
+        }.padding(24).frame(width: 360, height: running ? 410 : 360)
+            .background(Color(nsColor: .windowBackgroundColor))
     }
 }
