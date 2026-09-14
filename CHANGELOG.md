@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Live mode shows the last quota reading Codex recorded in its local session logs, attributed to saved accounts through the app's own save/switch history; no usage request is sent to the service.
+- Live mode reads the signed-in account's current quota through a short-lived `codex app-server` process (owner-authorized); saved inactive accounts are never queried.
+- Live mode shows the last quota reading Codex recorded in this Mac's session logs for other saved accounts, attributed through the app's own save/switch history.
 - Clarified switch confirmation: running Codex/CLI requires an explicit restart action; Cancel is the default.
 
 - Renamed the app and build artifacts to Codex Account Toggle; preserved the existing profile-storage path.
@@ -22,4 +23,4 @@
 - Korea-time reset dates and countdowns, including expired and unknown states.
 - Publication documentation, contributor templates, and macOS CI configuration.
 
-Not yet shipped: Windows support, production account-switch verification, fresh usage queries, Developer ID signing, notarization, and an automatic updater.
+Not yet shipped: Windows support, production account-switch verification, usage for inactive accounts beyond local records, Developer ID signing, notarization, and an automatic updater.

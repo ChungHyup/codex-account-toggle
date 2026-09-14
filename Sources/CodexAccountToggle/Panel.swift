@@ -122,7 +122,7 @@ struct Panel: View {
                 }
                 Text(usageCaption(usage)).font(.system(size: 10)).foregroundStyle(.secondary)
             } else {
-                Text(model.isDemo ? L10n.text("사용량 미확인 · 실시간 조회 연결 전") : L10n.text("사용량 기록 없음 · Codex를 사용하면 표시됩니다"))
+                Text(model.isDemo ? L10n.text("사용량 미확인 · 실시간 조회 연결 전") : model.liveUsageError ?? L10n.text("사용량 기록 없음 · Codex를 사용하면 표시됩니다"))
                     .font(.system(size: 11)).foregroundStyle(.secondary)
             }
         }.padding(12)

@@ -120,5 +120,6 @@
   "계정 전환 및 열기": "Switch account and open",
   "Codex 세션 기록 · 마지막 %@": "Codex session records · last %@",
   "기록 · ": "Recorded · ",
-  "사용량 기록 없음 · Codex를 사용하면 표시됩니다": "No recorded usage yet · appears after you use Codex"
+  "사용량 기록 없음 · Codex를 사용하면 표시됩니다": "No recorded usage yet · appears after you use Codex",
+  "Codex 실행 파일을 찾지 못해 실시간 조회를 건너뜁니다.": "Live query skipped: Codex executable not found."
 }

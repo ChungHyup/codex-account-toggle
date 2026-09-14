@@ -6,7 +6,9 @@ public enum AccountReadRequest: String, CaseIterable {
     public func encoded(id: Int) throws -> Data {
         var request: [String: Any] = ["id": id, "method": rawValue]
         if self == .identity { request["params"] = ["refreshToken": false] }
-        return try JSONSerialization.data(withJSONObject: request)
+        // Background usage reads skip the separate reset-credit lookup.
+        if self == .limits { request["params"] = ["excludeResetCreditDetails": true] }
+        return try JSONSerialization.data(withJSONObject: request, options: [.withoutEscapingSlashes])
     }
 }
 
@@ -17,8 +19,8 @@ public struct AccountReadReply {
     public init(data: Data, identityRevision: UUID) { self.data = data; self.identityRevision = identityRevision }
 }
 
-/// A future host adapter must enforce the deadline, response-size limit, and no credential writes.
-/// There is deliberately no production Process/URLSession/credential-file adapter here.
+/// Adapters must enforce the deadline and response-size limit and never read credentials themselves.
+/// `AppServerTransport` is the owner-authorized production adapter; tests use fakes.
 @MainActor
 public protocol CurrentAccountTransport {
     func request(_ request: AccountReadRequest, id: Int, timeout: TimeInterval) async throws -> AccountReadReply

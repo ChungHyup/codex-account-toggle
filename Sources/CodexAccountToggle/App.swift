@@ -72,9 +72,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: RunLoop.main).sink { [weak self] _, _, _ in self?.updateMenuTitle() }.store(in: &subscriptions)
         Timer.publish(every: 30, on: .main, in: .common).autoconnect()
             .sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
-        // Live mode re-reads Codex's local session logs; this is file reading only, never a request.
-        Timer.publish(every: 300, on: .main, in: .common).autoconnect()
-            .sink { [weak self] _ in self?.model.refreshUsage() }.store(in: &subscriptions)
+        // Live mode: local session records for saved accounts plus an owner-authorized live read for the signed-in one.
+        Timer.publish(every: 240, on: .main, in: .common).autoconnect()
+            .sink { [weak self] _ in self?.model.refreshUsage(); self?.model.refreshLiveUsage() }.store(in: &subscriptions)
         updateMenuTitle()
         popover.behavior = .transient
         popover.contentSize = NSSize(width: PanelLayout.width, height: PanelLayout.height)
@@ -120,7 +120,10 @@ final class Model: ObservableObject {
     @Published var scenario: DemoScenario = .success
     @Published var usage: [String: UsageSnapshot] = [:]
     @Published var menuUsageEnabled = true
+    @Published var liveUsageError: String?
+    let liveUsage = CurrentUsageState()
     private var collectingUsage = false
+    private var lastLiveRefresh: (id: String, at: Date)?
     let store: Store
     let isDemo: Bool
     let lifecycle: AppLifecycle
@@ -154,6 +157,37 @@ final class Model: ObservableObject {
             if recovery { notice = .error; message = L10n.text("완료되지 않은 전환이 있습니다. 이전 로그인을 복구하세요.") }
         } catch { message = L10n.text("계정 목록을 읽지 못했습니다. 저장 폴더를 확인하세요.") }
         refreshUsage()
+        refreshLiveUsage()
+    }
+    /// Owner-authorized (2026-09-14) live read for the signed-in account only. A short-lived
+    /// `codex app-server` answers read-only account and rate-limit requests; this app never sees tokens.
+    /// Saved inactive accounts are never queried, so credentials are never swapped for a reading.
+    func refreshLiveUsage(force: Bool = false) {
+        guard !isDemo, !busy, !recovery, !liveUsage.isLoading, let current, profiles.contains(where: { $0.id == current }) else { return }
+        if !force, let last = lastLiveRefresh, last.id == current, Date().timeIntervalSince(last.at) < 60 { return }
+        guard let executable = CodexExecutable.locate(candidates: codexCandidates()) else {
+            liveUsageError = L10n.text("Codex 실행 파일을 찾지 못해 실시간 조회를 건너뜁니다.")
+            return
+        }
+        lastLiveRefresh = (current, Date())
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        let transport = AppServerTransport(configuration: .init(executable: executable, codexHome: store.home, clientName: "codex-account-toggle", clientVersion: version))
+        let reader = CurrentAccountReader(transport: transport)
+        Task { @MainActor in
+            defer { transport.close() }
+            await liveUsage.refresh(using: reader)
+            if let error = liveUsage.error { liveUsageError = error.localizedDescription; return }
+            // Attribute only if the same account is still signed in after the read.
+            guard let reading = liveUsage.reading,
+                  let active = try? Identity(data: store.read(store.active)).key, active == current else { return }
+            usage[current] = UsageSnapshot(profileID: current, plan: reading.usage.plan, limit: reading.usage.limit, observedAt: reading.usage.observedAt, source: .live)
+            liveUsageError = nil
+        }
+    }
+    private func codexCandidates() -> [URL] {
+        var list: [URL] = []
+        if let app = try? (lifecycle as? CodexLifecycle)?.codexURL() { list.append(app.appendingPathComponent("Contents/Resources/codex")) }
+        return list + CodexExecutable.defaultCandidates
     }
     /// Live mode: quota comes from readings Codex already wrote to its local session logs.
     /// Nothing is launched or requested; the signed-in account is only noted for attribution.
@@ -165,8 +199,15 @@ final class Model: ObservableObject {
         Task.detached(priority: .utility) {
             let result = SessionUsage.collect(store: Store(root: root, home: home), profileIDs: ids)
             await MainActor.run { [weak self] in
-                self?.usage = result
-                self?.collectingUsage = false
+                guard let self else { return }
+                var merged = result
+                // A live reading for an account outranks an older local record for it.
+                for (id, snapshot) in self.usage where snapshot.source == .live {
+                    if let local = merged[id], local.observedAt > snapshot.observedAt { continue }
+                    merged[id] = snapshot
+                }
+                self.usage = merged
+                self.collectingUsage = false
             }
         }
     }

@@ -14,6 +14,10 @@
 
 실계정 테스트 금지 지침을 유지한다. 조회 기능 연결 전 토큰 갱신·저장 부작용을 검토해야 한다. 앱 종료·로그아웃·계정 전환으로 사용량을 얻는 방식은 사용하지 않는다.
 
+## 로그인 계정 실시간 조회 (2026-09-14 승인)
+
+이 Mac의 세션 기록은 원격 호스트·클라우드 작업을 반영하지 못해 실제 잔여량과 크게 어긋났다(기록 52% 남음 대 실제 16%). 소유자 승인으로 로그인 계정에 한해 `AppServerTransport`가 `codex app-server`를 잠깐 띄워 `account/read`(refreshToken false) → `account/rateLimits/read`(excludeResetCreditDetails true) → `account/read`를 보낸다. 조회 전후 로그인 파일의 계정 키가 같을 때만 그 계정에 표시한다. 패널 열 때 1분 간격 제한, 4분 주기 갱신, 전환 중·복구 대기 중에는 건너뛴다. 실패 시 이전 값을 유지하고 오류 원문은 표시하지 않는다. 저장된 비활성 계정은 조회하지 않는다.
+
 ## 로컬 세션 기록 기반 수집 (2026-09-14)
 
 참고 프로젝트 [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) `65469fc`의 `internal/quota/sessionlog.go`와 같은 방식이다. `SessionUsage.swift`가 `CODEX_HOME/sessions/**/*.jsonl`에서 `event_msg` 중 `token_count`의 `rate_limits`만 읽는다. 최신 파일 60개까지, 각 파일은 끝 256KB만 읽고 없으면 전체(32MB 이하)를 한 번 더 읽는다. `limit_id`가 `codex`가 아니면 무시하고, `rate_limits_by_limit_id`는 아직 관찰되지 않았다. Codex 실행, 요청 전송, 로그인 파일 접근은 없다.

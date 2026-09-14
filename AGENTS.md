@@ -8,3 +8,4 @@
 - Do not control or terminate the user's running Codex or CLI processes to make tests pass.
 - Keep coherent, tested changes in Git commits as development proceeds. Never claim a commit exists without checking Git. Do not rewrite history or push to a remote without user authorization.
 - Before staging, exclude credentials, real account data, build output, signing keys, and local environment files. Use synthetic fixtures only.
+- Owner authorization (2026-09-14): in `--live` mode the app may read usage for the **signed-in account only** by starting a short-lived `codex app-server` (stdio) and sending `initialize`, `account/read` with `refreshToken: false`, and `account/rateLimits/read`. Codex may refresh that account's `auth.json` as a side effect; this is accepted. Never swap credentials to read a saved inactive account, never send login/logout/credit/attestation methods, and keep automated tests on a fake executable with synthetic replies.
