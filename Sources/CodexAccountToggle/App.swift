@@ -173,10 +173,13 @@ final class Model: ObservableObject {
         // A fresh install starts in demo mode. An explicit `--live` (or the gear-menu switch) is
         // remembered for this Mac user so a plain double-click keeps real accounts; `--demo` forgets it.
         let arguments = CommandLine.arguments
-        if arguments.contains("--demo") { UserDefaults.standard.removeObject(forKey: Model.liveModeKey) }
-        else if arguments.contains("--live"), !arguments.contains("--usage-check") { UserDefaults.standard.set(true, forKey: Model.liveModeKey) }
-        let wantsLive = arguments.contains("--live") || (UserDefaults.standard.bool(forKey: Model.liveModeKey) && !arguments.contains("--demo"))
-        isDemo = !wantsLive || arguments.contains("--render-preview")
+        if arguments.contains("--render-preview") {
+            isDemo = true // Do not read or change the owner's mode while rendering fixtures.
+        } else {
+            if arguments.contains("--demo") { UserDefaults.standard.removeObject(forKey: Model.liveModeKey) }
+            else if arguments.contains("--live"), !arguments.contains("--usage-check") { UserDefaults.standard.set(true, forKey: Model.liveModeKey) }
+            isDemo = !(arguments.contains("--live") || (UserDefaults.standard.bool(forKey: Model.liveModeKey) && !arguments.contains("--demo")))
+        }
         if isDemo {
             do { store = try DemoWorkspace.make() }
             catch { fatalError(L10n.text("데모 작업 폴더를 만들 수 없습니다. 실제 계정에 접근하지 않고 종료합니다.")) }
@@ -210,7 +213,7 @@ final class Model: ObservableObject {
     /// `codex app-server` answers read-only account and rate-limit requests; this app never sees tokens.
     /// Saved inactive accounts are never queried, so credentials are never swapped for a reading.
     func refreshLiveUsage(force: Bool = false) {
-        guard !isDemo, !busy, !recovery, !liveUsage.isLoading, let current, profiles.contains(where: { $0.id == current }) else { return }
+        guard !isDemo, !busy, !loginInProgress, !recovery, !liveUsage.isLoading, let current, profiles.contains(where: { $0.id == current }) else { return }
         if !force, let last = lastLiveRefresh, last.id == current, Date().timeIntervalSince(last.at) < 60 { return }
         guard let executable = CodexExecutable.locate(candidates: codexCandidates()) else {
             liveUsageError = L10n.text("Codex 실행 파일을 찾지 못해 실시간 조회를 건너뜁니다.")
@@ -342,7 +345,7 @@ final class Model: ObservableObject {
         refresh()
     }
     func switchTo(_ profile: Profile) {
-        guard !busy, !recovery, profile.id != current else { return }
+        guard !busy, !loginInProgress, !liveUsage.isLoading, !recovery, profile.id != current else { return }
         if !isDemo {
             let running: Bool
             do { running = try lifecycle.isRunning() }

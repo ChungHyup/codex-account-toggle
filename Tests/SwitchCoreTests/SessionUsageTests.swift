@@ -55,10 +55,15 @@ final class SessionUsageTests: XCTestCase {
         XCTAssertEqual(limited.map { $0.limit.primary?.usedPercent }, [30])
         XCTAssertTrue(SessionUsageReader.scan(sessionsRoot: base.appendingPathComponent("missing")).isEmpty)
     }
+    func testInvalidDurationDoesNotCrash() {
+        let line = Data(#"{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"primary":{"used_percent":5,"window_minutes":1e100}}}}"#.utf8)
+        let value = SessionUsageReader.observation(from: line, fallbackDate: at(1))
+        XCTAssertNil(value?.limit.primary?.windowDurationMins)
+    }
     func testAttributionRules() {
         XCTAssertNil(UsageAttributor(points: []).profileID(at: at(50)))
         let saved = UsageAttributor(points: [IdentityPoint(at: at(100), id: "a", kind: .saved)])
-        XCTAssertEqual(saved.profileID(at: at(50)), "a")
+        XCTAssertNil(saved.profileID(at: at(50)))
         XCTAssertEqual(saved.profileID(at: at(150)), "a")
         let switched = UsageAttributor(points: [IdentityPoint(at: at(200), id: "b", kind: .switched), IdentityPoint(at: at(100), id: "a", kind: .saved)])
         XCTAssertEqual(switched.profileID(at: at(150)), "a")
@@ -66,7 +71,7 @@ final class SessionUsageTests: XCTestCase {
         XCTAssertEqual(switched.profileID(at: at(250)), "b")
         let manual = UsageAttributor(points: [IdentityPoint(at: at(100), id: "a", kind: .saved), IdentityPoint(at: at(200), id: "b", kind: .observed)])
         XCTAssertNil(manual.profileID(at: at(150)))
-        XCTAssertEqual(manual.profileID(at: at(50)), "a")
+        XCTAssertNil(manual.profileID(at: at(50)))
         XCTAssertEqual(manual.profileID(at: at(250)), "b")
         let onlySwitch = UsageAttributor(points: [IdentityPoint(at: at(200), id: "b", kind: .switched)])
         XCTAssertNil(onlySwitch.profileID(at: at(150)))

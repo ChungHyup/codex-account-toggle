@@ -1,96 +1,93 @@
-# Codex Account Toggle
+<p align="center"><img src="docs/brand/banner.svg" alt="Codex Account Toggle — Your accounts. One menu." width="100%"></p>
 
-[English](README.md) · [한국어](README.ko.md)
+<p align="center">
+  <a href="https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1"><b>Download for macOS</b></a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <a href="https://github.com/ChungHyup/codex-account-toggle/issues">Report an issue</a>
+</p>
 
-**Switch Codex accounts from your menu bar.**
+<p align="center">
+  <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-171f23">
+  <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%2B_Intel-universal-14745e">
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-14745e"></a>
+  <a href="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml/badge.svg"></a>
+</p>
 
-A small macOS menu-bar utility for choosing between saved Codex accounts. Built with SwiftUI and AppKit. **Experimental and demo-first; not affiliated with OpenAI.**
+A small, native menu-bar app for people who use more than one Codex account. Keep personal and work accounts close, check the available quota, and choose the account you want to use next.
 
-![English demo](docs/screenshots/demo-en.png)
+**No dashboard to manage. No logout routine to repeat. Just your accounts, one click away.**
 
-## What works today
+## A small menu. The details that matter.
 
-- Three synthetic accounts in demo mode, account renaming and deletion of saved copies (right-click a row), and simulated switching/recovery.
-- Korean and English UI, light/dark themes, and visible account management menus.
-- Sample plan badges, weekly-only demo quota percentages, and exact reset dates/countdowns in Korea time (KST).
-- Weekly-first display and optional menu-bar quota (`D` marks demo data; `~` marks an old reading).
-- In `--live` mode, the signed-in account's current weekly quota, read through a short-lived `codex app-server` process that Codex itself runs (owner-approved; see [AGENTS.md](AGENTS.md)). Other saved accounts show the last reading Codex recorded in this Mac's session logs, attributed through the app's own save/switch history; they are never queried, so no credentials are swapped for a reading.
-- Core tests for credential-file validation, private file permissions, backups, recovery, dates, and translations.
+| Light | Dark |
+| :---: | :---: |
+| <img src="docs/screenshots/product-en.png" width="300" alt="Light account panel"> | <img src="docs/screenshots/product-en-dark.png" width="300" alt="Dark account panel"> |
 
-The [current-account reader](docs/read-only-connection.md) is prepared and tested with synthetic responses; its production transport remains disconnected. See the [account-switcher benchmark](docs/benchmark.md) for adopted behaviors and follow-up work.
+*Actual app views rendered with fictional accounts and sample quota. These are design previews, not readings from a real account.*
 
-## Important limits
+- **Add another account without logging out.** Browser sign-in runs in a temporary Codex home, then saves the new account locally.
+- **Switch with a clear confirmation.** See which account you chose and whether Codex needs to restart. Cancel is the default.
+- **See quota before you switch.** The signed-in account gets a live reading. Inactive accounts show a last known local reading when it can be attributed; missing values stay unknown.
+- **Make the menu yours.** Rename or remove saved accounts, show quota in the menu bar, and choose English or Korean. Light and dark appearance follow macOS.
+- **Keep control of your data.** No app-operated cloud sync or analytics. Authentication is handled by Codex; saved sign-in copies stay on your Mac.
 
-The default app never accesses real sign-in files or controls Codex. In the demo, usage and plans are **samples**. In live mode the signed-in account is queried when the panel opens (at most once a minute) and every four minutes; Codex may refresh that account's tokens during the read, as it does in normal use. Other saved accounts show the **last reading recorded on this Mac**, which misses work done on remote hosts or in Codex cloud and updates only when Codex runs here; readings older than any save in this app are assumed to belong to the first saved signed-in account, as in the reference project. Quota windows are shown only when present in the supplied data; a five-hour limit is not assumed for every account. A quota percentage is not a token balance.
+## Install
 
-Real switching exists behind an explicit `--live` argument but is **not end-to-end validated**. It targets file-based ChatGPT credentials and the `com.openai.codex` app identifier. Keychain/auto/ephemeral credentials, API-key sign-in, Windows, production signing/notarization, and usage queries for inactive saved accounts are not supported. Do not use real sessions in development or automated testing.
+1. Download **Codex-Account-Toggle-0.2.0-beta.1-universal.dmg** from [Releases](https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1).
+2. Open the DMG and drag **Codex Account Toggle** to **Applications**.
+3. Open the app and click the circular-arrows icon in your menu bar.
 
-## Build and try the demo
+**This is a beta, locally ad-hoc signed and not notarized.** macOS may block the downloaded app. If you cannot approve it through your organization's normal policy, build from source instead. There is no automatic updater yet. Private repository releases require GitHub access until the owner makes the project public.
 
-Requires macOS 13+, Swift 5.9+, and Xcode Command Line Tools. No third-party package dependencies.
+Requires **macOS 13+** and an installed **Codex desktop app** for real account switching. The DMG includes both Apple Silicon and Intel code; Intel compilation is verified, but Intel hardware QA is still pending.
 
-On your MacBook, install Xcode Command Line Tools with `xcode-select --install` if needed. Install GitHub CLI (`gh`) and sign in with `gh auth login`, using the GitHub account that has access to this private repository. Then:
+## First real account
+
+A fresh install opens a safe demo. Choose **Switch to real accounts** in the gear menu when you are ready.
+
+1. **Add account → Save signed-in account** saves the account already open in Codex.
+2. **Add account → Sign in to another account…** opens browser sign-in for another account. Give it a recognizable name.
+3. Finish your Codex work and close CLI sessions. Click the account you want, then confirm the switch/restart.
+
+Do not log out of Codex just to add another account: logout can invalidate a saved sign-in. The app never forces your running Codex or CLI to quit. If normal shutdown does not complete, it stops before replacing the sign-in. Verify the selected account inside Codex after switching.
+
+Real-account mode is remembered. Choose demo mode in settings to go back. The app targets **file-based ChatGPT authentication**; API-key and Keychain/auto/ephemeral credentials are unsupported.
+
+## What quota means
+
+The percentage is remaining **usage allowance**, not a count of tokens. Only quota windows supplied by Codex are shown. Inactive accounts are not signed in or polled just to obtain usage. Their local history may be incomplete or ambiguous; timestamps matter. Reset dates currently use **Korea time (KST)**.
+
+The live read starts a short-lived `codex app-server`; Codex may refresh the active account's credentials. Local rollout files are read to extract quota events, and unrelated content is discarded. See [usage details](docs/usage.md).
+
+## Build from source
+
+Install Xcode Command Line Tools (`xcode-select --install`) and use Swift 5.9+. No third-party Swift package dependencies.
 
 ```sh
-gh repo clone ChungHyup/codex-account-toggle
+git clone https://github.com/ChungHyup/codex-account-toggle.git
 cd codex-account-toggle
-```
-
-
-```sh
 swift test --disable-sandbox
 bash scripts/build-app.sh
+open 'dist/Codex Account Toggle.app'
 ```
 
-The bundle icon comes from `assets/AppIcon.icns`; regenerate it with `swift scripts/make-icon.swift` after changing the mark.
-
-To install for your macOS user, copy the built app into `~/Applications` (create the folder if necessary), or keep it in `dist`:
+For a private repository, authenticate first or use `gh repo clone ChungHyup/codex-account-toggle`. To build a universal DMG with full Xcode installed:
 
 ```sh
-mkdir -p "$HOME/Applications"
-ditto 'dist/Codex Account Toggle.app' "$HOME/Applications/Codex Account Toggle.app"
-open "$HOME/Applications/Codex Account Toggle.app"
+UNIVERSAL=1 bash scripts/build-app.sh
+bash scripts/package-dmg.sh
 ```
 
-Open `dist/Codex Account Toggle.app`, then click its circular-arrows menu-bar icon. Click a demo account row to switch. The gear menu's switch scenario simulates success, refused quit, or launch failure/recovery. Right-click a row to rename it or delete its saved copy.
+[Development and manual QA guide](docs/qa.md) · [Release review](docs/release-review-0.2.0.md) · [Changelog](CHANGELOG.md)
 
-The language follows macOS (Korean, otherwise English). The gear menu lets you choose System, 한국어, or English; reopen **Codex Account Toggle** to apply. This never requires restarting Codex. Date labels are localized while their timezone stays explicitly KST.
+## Security & contributions
 
-For deterministic visual checks:
+Saved sign-ins are **plaintext files protected by filesystem permissions** (directory 0700, files 0600), not encrypted vault entries. They remain under `~/Library/Application Support/CodexSwitch` for compatibility with the previous app name. Never upload that directory or `auth.json` in an issue. See [SECURITY.md](SECURITY.md) for the full model and supported scope.
 
-```sh
-'dist/Codex Account Toggle.app/Contents/MacOS/CodexAccountToggle' --render-preview --language=en
-'dist/Codex Account Toggle.app/Contents/MacOS/CodexAccountToggle' --render-preview --language=ko --dark
-```
+Found a rough edge? [Open an issue](https://github.com/ChungHyup/codex-account-toggle/issues) with your macOS version and reproducible steps, without account secrets. Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md). Windows, notarized distribution, and an automatic updater are not included in this release.
 
-These render synthetic data only. `--window` opens the demo in a small standalone window. Demo workspaces are created under the system temporary directory and are not committed.
+## License & acknowledgments
 
-For a design-only preview without demo copy, add `--product-preview` to `--render-preview`. It writes `dist/product-preview-en.png` for English (or `product-preview-dark-en.png` with `--dark`). It still uses synthetic accounts and the fake lifecycle. This flag only affects offscreen rendering; normal demo launches keep their labels. These images do not show live account data.
+[MIT](LICENSE) © 2026 Chunghyup OH. Independent software; not affiliated with or endorsed by OpenAI.
 
-## Credential handling
-
-Experimental live mode reads `CODEX_HOME/auth.json` (default `~/.codex/auth.json`) and stores snapshots under `~/Library/Application Support/CodexSwitch`. Files are plaintext with mode 0600; the directory uses 0700. This is file-permission protection, not encryption. The app itself has no telemetry or network client; the usage read is performed by a `codex app-server` process the app starts and stops, which contacts OpenAI as Codex normally does, and whose stderr is discarded. Session logs are read only to extract quota lines; conversation content is neither parsed nor stored, and the extracted readings are cached in the same private directory. Project/session/skill/config files are not intentionally modified.
-
-Switching is designed to request a normal quit, confirm Codex processes are gone, back up the prior sign-in, replace the file, and reopen the app. Recovery is deferred when a process may still be using credentials. These file-level checks do not prove successful server authentication. See [security notes](SECURITY.md) and [implementation review](docs/review.md).
-
-## Contributing and publication
-
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [publication readiness](docs/publication.md). macOS CI runs synthetic tests, source checks, and the app build; check the repository’s Actions tab for hosted results.
-
-Licensed under the [MIT License](LICENSE), copyright © 2026 Chunghyup OH. The reference project [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) is also MIT-licensed. This is a new Swift implementation; no reference source is vendored.
-
-The app was formerly named Codex Switch. Its profile directory retains that name for compatibility; no credential migration is performed. With an old-name instance open, quit that utility yourself before opening the renamed app. The new app identifier starts with default preferences.
-
-## Manual QA on a separate Mac
-
-Start with the default demo. Check account names, English/Korean, light/dark appearance, weekly quota layout, and the simulated refused-quit/recovery scenarios. The signed-in account shows its current quota from a live read; other saved accounts show the last reading recorded on this Mac, if any.
-
-Only when you choose to test your own real accounts, finish your Codex work and close its CLI sessions. Quit **Codex Account Toggle** itself before launching it in the experimental mode below (otherwise the existing demo instance prevents a second instance):
-
-```sh
-open "$HOME/Applications/Codex Account Toggle.app" --args --live
-```
-
-This command is for your manual QA, not automated development tests. To see what the live read returns without opening the panel, run the executable with `--live --usage-check`; it prints the plan, windows, and any error (never tokens) and exits. Save account A with **Add account → Save signed-in account**. Add account B with **Add account → Sign in to another account…**: the app runs `codex login` in a throwaway `CODEX_HOME`, so account A stays signed in, and imports only the new `auth.json`. Do not log out of the ChatGPT app to switch accounts; a logout can invalidate the saved account's tokens. Test B→A→B, verify the account shown inside Codex after each restart, and check project/conversation availability. Cancel a switch confirmation and verify the current account stays selected. If quitting fails, the switch should stop without replacing credentials. Do not force a failure against real credentials; use demo scenarios for recovery testing.
-
-The build is locally ad-hoc signed, not Developer ID signed or notarized. No installer, automatic updater, or Windows binary is provided yet. Launching with `--live` once (or choosing **Switch to real accounts** in the gear menu) is remembered for your macOS user, so a plain double-click keeps real accounts afterwards. Use the gear menu or launch with `--demo` to return to demo mode; a fresh install always starts in demo mode. Send QA observations without authentication files, tokens, or personal account screenshots.
+Design and implementation research included [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) and [liuzhao1225/codex-account-switcher](https://github.com/liuzhao1225/codex-account-switcher). Their code and artwork are not bundled. Our logo is generated from original vector geometry; see [reference review](docs/provenance-review.md).

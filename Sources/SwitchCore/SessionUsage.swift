@@ -85,7 +85,7 @@ public enum SessionUsageReader {
     private static func window(_ raw: Any?) -> UsageWindow? {
         guard let record = raw as? [String: Any] else { return nil }
         return UsageWindow(usedPercent: number(value(record, "used_percent", "usedPercent")),
-                           windowDurationMins: number(value(record, "window_minutes", "windowDurationMins", "window_duration_mins")).map { Int($0) },
+                           windowDurationMins: number(value(record, "window_minutes", "windowDurationMins", "window_duration_mins")).flatMap { $0.isFinite && $0 > 0 ? Int(exactly: $0) : nil },
                            resetsAt: number(value(record, "resets_at", "resetsAt")))
     }
     private static func value(_ record: [String: Any], _ keys: String...) -> Any? {
@@ -128,8 +128,7 @@ public struct UsageAttributor {
             guard let after, after.id != before.id else { return before.id }
             return after.kind == .switched ? before.id : nil
         }
-        // Older than every confirmation: follow the first passive confirmation, as the reference project does.
-        if let after, after.kind != .switched { return after.id }
+        // No evidence ties history before our first confirmation to this account.
         return nil
     }
 }
@@ -139,7 +138,7 @@ public enum SessionUsage {
     /// so an inactive account keeps its last value after Codex rotates its logs.
     public static func collect(store: Store, profileIDs: [String], maxFiles: Int = 60) -> [String: UsageSnapshot] {
         let attributor = UsageAttributor(points: (try? store.identityPoints()) ?? [])
-        var cache = (try? store.cachedUsage()) ?? [:]
+        var cache = ((try? store.cachedUsage()) ?? [:]).filter { profileIDs.contains($0.key) && attributor.profileID(at: $0.value.observedAt) == $0.key }
         var changed = false
         for observation in SessionUsageReader.scan(sessionsRoot: store.sessions, maxFiles: maxFiles) {
             guard let id = attributor.profileID(at: observation.observedAt) else { continue }

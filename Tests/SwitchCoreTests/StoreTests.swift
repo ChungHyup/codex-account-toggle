@@ -14,6 +14,13 @@ final class StoreTests: XCTestCase {
     func fixture(_ account: String, refresh: String = "fake-refresh") -> Data {
         Data("{\"auth_mode\":\"chatgpt\",\"tokens\":{\"account_id\":\"\(account)\",\"access_token\":\"fake-access\",\"refresh_token\":\"\(refresh)\"}}".utf8)
     }
+    func testRemoveRejectsTraversalBeforeChangingFiles() throws {
+        let outside = base.appendingPathComponent("outside.auth.json")
+        try Data("synthetic sentinel".utf8).write(to: outside)
+        let bad = Profile(id: "../outside", name: "Invalid", email: "invalid@example.test")
+        XCTAssertThrowsError(try store.remove(bad))
+        XCTAssertEqual(try String(contentsOf: outside), "synthetic sentinel")
+    }
     func testRemoveDeletesOnlyThatAccountsCopy() throws {
         let a = try store.save(data: fixture("a"), name: "A")
         let b = try store.save(data: fixture("b"), name: "B")

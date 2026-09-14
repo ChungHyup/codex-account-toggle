@@ -22,6 +22,7 @@ final class TemporaryHomeLoginTests: XCTestCase {
         let marker = base.appendingPathComponent("home-used")
         let exe = try script("codex-ok", """
         [ "$1" = login ] || exit 9
+        /usr/bin/grep -q 'cli_auth_credentials_store = "file"' "$CODEX_HOME/config.toml" || exit 8
         printf '%s' "$CODEX_HOME" > "\(marker.path)"
         printf '%s' '\(synthetic)' > "$CODEX_HOME/auth.json"
         """)

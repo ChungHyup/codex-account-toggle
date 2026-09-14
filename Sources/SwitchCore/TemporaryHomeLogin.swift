@@ -26,6 +26,8 @@ public final class TemporaryHomeLogin {
         let home = FileManager.default.temporaryDirectory.appendingPathComponent("codex-account-toggle-login-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         defer { try? FileManager.default.removeItem(at: home); process = nil }
+        // Force file storage inside the temporary home, independent of future CLI defaults.
+        try "cli_auth_credentials_store = \"file\"\n".write(to: home.appendingPathComponent("config.toml"), atomically: true, encoding: .utf8)
         let process = Process()
         process.executableURL = executable
         process.arguments = deviceAuth ? ["login", "--device-auth"] : ["login"]

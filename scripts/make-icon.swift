@@ -1,4 +1,4 @@
-// Generates assets/AppIcon.icns: a teal rounded square with the app's circular-arrows mark.
+// Generates the original Codex Account Toggle icon from vector geometry.
 // Run from the repository root: swift scripts/make-icon.swift
 import AppKit
 
@@ -25,20 +25,37 @@ func render(pixels: Int) -> Data {
     let shape = NSBezierPath(roundedRect: box, xRadius: box.width * 0.225, yRadius: box.width * 0.225)
     let gradient = NSGradient(starting: NSColor(red: 0.13, green: 0.58, blue: 0.48, alpha: 1), ending: NSColor(red: 0.06, green: 0.36, blue: 0.30, alpha: 1))!
     gradient.draw(in: shape, angle: -90)
-    let symbol = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: nil)!
-        .withSymbolConfiguration(.init(pointSize: box.width * 0.5, weight: .semibold))!
-    let tinted = NSImage(size: symbol.size, flipped: false) { rect in
-        symbol.draw(in: rect)
-        NSColor.white.set()
-        rect.fill(using: .sourceAtop)
-        return true
+    // Original mark: two offset account toggles, moving in opposite directions.
+    // Drawn from geometry, with no third-party icon or artwork embedded.
+    func lane(x: CGFloat, y: CGFloat, knobRight: Bool) {
+        let track = NSRect(x: side*x, y: side*y, width: side*0.54, height: side*0.205)
+        NSColor(white: 1, alpha: 0.16).setFill()
+        NSBezierPath(roundedRect: track, xRadius: track.height/2, yRadius: track.height/2).fill()
+        let diameter = side*0.155
+        let knobX = knobRight ? track.maxX - diameter - side*0.025 : track.minX + side*0.025
+        NSColor(red: 0.92, green: 1, blue: 0.97, alpha: 1).setFill()
+        NSBezierPath(ovalIn: NSRect(x: knobX, y: track.midY-diameter/2, width: diameter, height: diameter)).fill()
+        let center = NSPoint(x: knobRight ? track.minX+side*0.14 : track.maxX-side*0.14, y: track.midY)
+        let direction: CGFloat = knobRight ? 1 : -1
+        let arrow = NSBezierPath()
+        arrow.lineWidth = side*0.025
+        arrow.lineCapStyle = .round
+        arrow.lineJoinStyle = .round
+        arrow.move(to: NSPoint(x: center.x-direction*side*0.045, y: center.y))
+        arrow.line(to: NSPoint(x: center.x+direction*side*0.045, y: center.y))
+        arrow.move(to: NSPoint(x: center.x, y: center.y+side*0.045))
+        arrow.line(to: NSPoint(x: center.x+direction*side*0.045, y: center.y))
+        arrow.line(to: NSPoint(x: center.x, y: center.y-side*0.045))
+        NSColor(white: 1, alpha: 0.9).setStroke()
+        arrow.stroke()
     }
-    let target = NSSize(width: box.width * 0.62, height: box.width * 0.62 * symbol.size.height / symbol.size.width)
-    let origin = NSPoint(x: box.midX - target.width / 2, y: box.midY - target.height / 2)
-    tinted.draw(in: NSRect(origin: origin, size: target), from: .zero, operation: .sourceOver, fraction: 1)
+    lane(x: 0.19, y: 0.53, knobRight: true)
+    lane(x: 0.27, y: 0.265, knobRight: false)
     NSGraphicsContext.restoreGraphicsState()
     return rep.representation(using: .png, properties: [:])!
 }
+
+try render(pixels: 1024).write(to: URL(fileURLWithPath: "assets/logo.png"))
 
 for entry in sizes {
     try render(pixels: entry.pixels).write(to: iconset.appendingPathComponent("icon_\(entry.name).png"))

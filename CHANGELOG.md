@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-beta.1 — 2026-09-14
+
+- First universal macOS DMG prerelease with original toggle logo and bilingual product README.
+- Release review: conservative history attribution, safe profile deletion, duration validation, isolated previews, and explicit temporary credential storage.
+
+## Development history
 
 - Larger panel type (300 points wide): names 13–14 pt, details 11–11.5 pt, percentages 14–16 pt. Waiting accounts use two lines so long names stay readable. Success confirmations no longer appear; only progress, sign-in, recovery, and errors are shown.
 - Right-click a row to delete the app's saved copy of an account (its credential snapshot and cached usage); the real Codex sign-in is never changed. Cancel is the default button.

@@ -93,6 +93,7 @@ public final class Store {
     }
     /// Removes this app's saved copy of an account and its cached usage. The real sign-in is untouched.
     public func remove(_ profile: Profile) throws {
+        guard profile.id.count == 64, profile.id.allSatisfy({ $0.isHexDigit }) else { throw SwitchError(L10n.text("저장된 계정 식별자가 올바르지 않습니다.")) }
         var list = try profiles()
         guard let position = list.firstIndex(where: { $0.id == profile.id }) else { throw SwitchError(L10n.text("저장된 계정을 찾을 수 없습니다.")) }
         list.remove(at: position)
