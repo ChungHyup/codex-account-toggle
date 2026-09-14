@@ -127,5 +127,9 @@
   "계정 추가": "Add account",
   "샘플 계정만 바뀝니다": "Only sample accounts change",
   "실제 계정 모드로 전환 (재실행)": "Switch to real accounts (relaunch)",
-  "데모 모드로 전환 (재실행)": "Switch to demo mode (relaunch)"
+  "데모 모드로 전환 (재실행)": "Switch to demo mode (relaunch)",
+  "%@ 계정은 이미 저장되어 있습니다": "%@ is already saved",
+  "다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 다시 누르세요. 저장해 둔 auth.json 파일이 있으면 바로 가져올 수도 있습니다.": "To add another account, sign in to it in Codex and press Add account again. You can also import a saved auth.json file.",
+  "확인": "OK",
+  "다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 누르세요.": "To add another account, sign in to it in Codex, then press Add account."
 }

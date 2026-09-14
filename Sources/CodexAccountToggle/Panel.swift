@@ -38,7 +38,7 @@ struct Panel: View {
             if let active { currentRow(active) } else { emptyCurrent }
             Divider()
             if others.isEmpty {
-                Text(L10n.text("다른 계정을 추가하면 클릭 한 번으로 선택할 수 있어요."))
+                Text(model.isDemo ? L10n.text("다른 계정을 추가하면 클릭 한 번으로 선택할 수 있어요.") : L10n.text("다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 누르세요."))
                     .font(.system(size: 10)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 10).padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
             } else if others.count > PanelLayout.maxVisibleRows {

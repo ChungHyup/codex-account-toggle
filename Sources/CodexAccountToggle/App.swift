@@ -257,8 +257,27 @@ final class Model: ObservableObject {
     }
     func saveCurrent() {
         guard !isDemo else { return }
-        do { try store.validateBackend(); try add(data: store.read(store.active), isSignedIn: true) }
-        catch { show(error) }
+        do {
+            try store.validateBackend()
+            let data = try store.read(store.active)
+            let identity = try Identity(data: data)
+            if let existing = try store.profiles().first(where: { $0.id == identity.key }) {
+                // Already saved: keep its name, refresh the stored copy, and explain how to add another account.
+                try store.save(data: data, name: existing.name)
+                refresh()
+                explainAlreadySaved(existing)
+                return
+            }
+            try add(data: data, isSignedIn: true)
+        } catch { show(error) }
+    }
+    private func explainAlreadySaved(_ profile: Profile) {
+        let alert = NSAlert()
+        alert.messageText = L10n.format("%@ 계정은 이미 저장되어 있습니다", profile.name)
+        alert.informativeText = L10n.text("다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 다시 누르세요. 저장해 둔 auth.json 파일이 있으면 바로 가져올 수도 있습니다.")
+        alert.addButton(withTitle: L10n.text("확인"))
+        alert.addButton(withTitle: L10n.text("로그인 파일 가져오기…"))
+        if alert.runModal() == .alertSecondButtonReturn { importAccount() }
     }
     func importAccount() {
         guard !isDemo else { return }
