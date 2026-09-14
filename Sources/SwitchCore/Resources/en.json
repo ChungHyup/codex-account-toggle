@@ -125,5 +125,7 @@
   "기록": "log",
   "복구": "Restore",
   "계정 추가": "Add account",
-  "샘플 계정만 바뀝니다": "Only sample accounts change"
+  "샘플 계정만 바뀝니다": "Only sample accounts change",
+  "실제 계정 모드로 전환 (재실행)": "Switch to real accounts (relaunch)",
+  "데모 모드로 전환 (재실행)": "Switch to demo mode (relaunch)"
 }

@@ -246,6 +246,7 @@ struct Panel: View {
                     Text("Restart app to apply / 재실행 후 적용")
                 }
                 Divider()
+                Button(model.isDemo ? L10n.text("실제 계정 모드로 전환 (재실행)") : L10n.text("데모 모드로 전환 (재실행)")) { model.switchMode(toLive: model.isDemo) }
                 if !model.isDemo { Button(L10n.text("로그인 파일 가져오기…"), action: model.importAccount) }
                 Button(L10n.text("Codex Account Toggle 종료")) { NSApp.terminate(nil) }
             } label: { Image(systemName: "gearshape").font(.system(size: 11)).frame(width: 22, height: 22) }

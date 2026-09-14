@@ -165,8 +165,15 @@ final class Model: ObservableObject {
     let isDemo: Bool
     let lifecycle: AppLifecycle
     let coordinator: SwitchCoordinator
+    static let liveModeKey = "liveMode"
     init() {
-        isDemo = !CommandLine.arguments.contains("--live") || CommandLine.arguments.contains("--render-preview")
+        // A fresh install starts in demo mode. An explicit `--live` (or the gear-menu switch) is
+        // remembered for this Mac user so a plain double-click keeps real accounts; `--demo` forgets it.
+        let arguments = CommandLine.arguments
+        if arguments.contains("--demo") { UserDefaults.standard.removeObject(forKey: Model.liveModeKey) }
+        else if arguments.contains("--live"), !arguments.contains("--usage-check") { UserDefaults.standard.set(true, forKey: Model.liveModeKey) }
+        let wantsLive = arguments.contains("--live") || (UserDefaults.standard.bool(forKey: Model.liveModeKey) && !arguments.contains("--demo"))
+        isDemo = !wantsLive || arguments.contains("--render-preview")
         if isDemo {
             do { store = try DemoWorkspace.make() }
             catch { fatalError(L10n.text("데모 작업 폴더를 만들 수 없습니다. 실제 계정에 접근하지 않고 종료합니다.")) }
@@ -312,6 +319,19 @@ final class Model: ObservableObject {
         } catch { show(error) }
     }
     func show(_ error: Error) { notice = .error; message = (error as? SwitchError)?.errorDescription ?? L10n.text("파일 또는 앱 작업에 실패했습니다. 접근 권한과 설치 상태를 확인하세요.") }
+    /// Remembers the mode, then relaunches the bundle so the choice takes effect.
+    func switchMode(toLive live: Bool) {
+        if live { UserDefaults.standard.set(true, forKey: Model.liveModeKey) }
+        else { UserDefaults.standard.removeObject(forKey: Model.liveModeKey) }
+        let bundle = Bundle.main.bundleURL
+        if bundle.pathExtension == "app" {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/bin/sh")
+            task.arguments = ["-c", "sleep 0.7; /usr/bin/open \"$0\"", bundle.path]
+            try? task.run()
+        }
+        NSApp.terminate(nil)
+    }
     func rename(_ profile: Profile) {
         guard !busy else { return }
         let alert = NSAlert()

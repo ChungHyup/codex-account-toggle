@@ -28,7 +28,7 @@ open "$HOME/Applications/Codex Account Toggle.app"
 
 ## 실행
 
-`bash scripts/build-app.sh`로 빌드한 뒤 `dist/Codex Account Toggle.app`을 Finder에서 더블 클릭하세요. 메뉴바의 순환 화살표 아이콘으로 계정 목록을 엽니다. **기본 실행은 데모 모드입니다.** 개발 시 `swift test --disable-sandbox`로 테스트할 수 있습니다. 앱 아이콘은 `assets/AppIcon.icns`이며, 마크를 바꾸면 `swift scripts/make-icon.swift`로 다시 생성합니다.
+`bash scripts/build-app.sh`로 빌드한 뒤 `dist/Codex Account Toggle.app`을 Finder에서 더블 클릭하세요. 메뉴바의 순환 화살표 아이콘으로 계정 목록을 엽니다. **기본 실행은 데모 모드입니다.** 한 번 `--live`로 실행하거나 톱니바퀴 메뉴에서 **실제 계정 모드로 전환**을 고르면 그 선택이 저장되어 이후 더블클릭으로도 실제 계정 모드로 열립니다. 데모로 돌아가려면 같은 메뉴를 쓰거나 `--demo`로 실행하세요. 개발 시 `swift test --disable-sandbox`로 테스트할 수 있습니다. 앱 아이콘은 `assets/AppIcon.icns`이며, 마크를 바꾸면 `swift scripts/make-icon.swift`로 다시 생성합니다.
 
 ## 데모 모드
 
