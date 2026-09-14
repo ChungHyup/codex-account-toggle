@@ -47,8 +47,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let productPreview = CommandLine.arguments.contains("--product-preview")
             let expanded = !productPreview && CommandLine.arguments.contains("--settings-preview")
             let hosting = NSHostingView(rootView: Panel(model: model, expanded: expanded, productPreview: productPreview).background(Color(nsColor: .windowBackgroundColor)))
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: PanelLayout.width, height: PanelLayout.height + (state ? 80 : 0) + (expanded ? 44 : 0)), styleMask: [.borderless], backing: .buffered, defer: false)
+            // The panel sizes itself to its content; render exactly that.
+            let size = hosting.fittingSize
+            let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
             window.contentView = hosting
+            hosting.frame = NSRect(origin: .zero, size: size)
             hosting.layoutSubtreeIfNeeded()
             if let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) {
                 hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
@@ -77,12 +80,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in self?.model.refreshUsage(); self?.model.refreshLiveUsage() }.store(in: &subscriptions)
         updateMenuTitle()
         popover.behavior = .transient
-        popover.contentSize = NSSize(width: PanelLayout.width, height: PanelLayout.height)
-        popover.contentViewController = NSHostingController(rootView: Panel(model: model))
+        let controller = NSHostingController(rootView: Panel(model: model))
+        controller.sizingOptions = [.preferredContentSize] // popover height follows the compact content
+        popover.contentViewController = controller
         if CommandLine.arguments.contains("--window") && model.isDemo {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: PanelLayout.width, height: PanelLayout.height), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            let hosting = NSHostingView(rootView: Panel(model: model))
+            let window = NSWindow(contentRect: NSRect(origin: .zero, size: hosting.fittingSize), styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = L10n.text("Codex Account Toggle · 데모")
-            window.contentViewController = NSHostingController(rootView: Panel(model: model))
+            window.contentView = hosting
             window.center()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
