@@ -322,10 +322,12 @@ final class Model: ObservableObject {
     func add(data: Data, isSignedIn: Bool = false) throws {
         guard !isDemo else { return }
         let identity = try Identity(data: data)
+        // A re-login of a saved account refreshes its stored copy and keeps its name by default.
+        let existing = try store.profiles().first { $0.id == identity.key }
         let alert = NSAlert()
         alert.messageText = L10n.text("계정 이름")
         alert.informativeText = L10n.text("메뉴에 표시할 이름을 입력하세요.")
-        let field = NSTextField(string: identity.email)
+        let field = NSTextField(string: existing?.name ?? identity.email)
         field.frame = NSRect(x: 0, y: 0, width: 260, height: 24)
         alert.accessoryView = field
         alert.addButton(withTitle: L10n.text("저장"))
@@ -334,7 +336,8 @@ final class Model: ObservableObject {
         let profile = try store.save(data: data, name: field.stringValue)
         // A saved signed-in account anchors attribution of earlier session-log readings; an imported file does not.
         if isSignedIn { try? store.note(identity: profile.id, kind: .saved) }
-        message = L10n.text("계정을 저장했습니다. 다른 계정으로 로그인한 뒤 다시 저장하면 목록에 추가됩니다.")
+        notice = .success
+        message = existing != nil ? L10n.text("저장된 계정의 로그인 정보를 갱신했습니다.") : L10n.text("계정을 저장했습니다. 다른 계정으로 로그인한 뒤 다시 저장하면 목록에 추가됩니다.")
         refresh()
     }
     func switchTo(_ profile: Profile) {

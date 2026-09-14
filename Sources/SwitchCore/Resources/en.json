@@ -138,5 +138,6 @@
   "로그인이 완료되지 않았습니다. 브라우저 창을 닫고 다시 시도하세요.": "Sign-in did not complete. Close the browser window and try again.",
   "Codex 실행 파일을 찾지 못했습니다.": "Codex executable not found.",
   "다른 계정을 추가하려면 계정 추가 → 다른 계정으로 로그인…을 누르세요. ChatGPT 앱에서 로그아웃할 필요가 없습니다.": "To add another account, choose Add account → Sign in to another account…. You do not need to log out of the ChatGPT app.",
-  "계정 추가 → 다른 계정으로 로그인…으로 추가하세요. 로그아웃은 필요 없습니다.": "Add one with Add account → Sign in to another account…. No logout needed."
+  "계정 추가 → 다른 계정으로 로그인…으로 추가하세요. 로그아웃은 필요 없습니다.": "Add one with Add account → Sign in to another account…. No logout needed.",
+  "저장된 계정의 로그인 정보를 갱신했습니다.": "Updated the saved account's sign-in."
 }
