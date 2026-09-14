@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The panel now closes on a click anywhere outside it, including in other apps.
 - Compacted the menu-bar panel to a 264-point-wide, content-sized list (about 174 points for three accounts): one line per account, quota on the signed-in row, rename via right-click, demo scenario and display options in the gear menu.
 - Live mode reads the signed-in account's current quota through a short-lived `codex app-server` process (owner-authorized); saved inactive accounts are never queried.
 - Live mode shows the last quota reading Codex recorded in this Mac's session logs for other saved accounts, attributed through the app's own save/switch history.

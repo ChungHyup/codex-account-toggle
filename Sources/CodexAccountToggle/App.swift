@@ -10,12 +10,13 @@ struct SwitchApp: App {
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     var item: NSStatusItem!
     let model = Model()
     let popover = NSPopover()
     var previewWindow: NSWindow?
     private var subscriptions = Set<AnyCancellable>()
+    private var outsideClickMonitor: Any?
     func applicationDidFinishLaunching(_ notification: Notification) {
         if CommandLine.arguments.contains("--render-preview") {
             guard model.isDemo else { NSApp.terminate(nil); return }
@@ -80,6 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in self?.model.refreshUsage(); self?.model.refreshLiveUsage() }.store(in: &subscriptions)
         updateMenuTitle()
         popover.behavior = .transient
+        popover.delegate = self
         let controller = NSHostingController(rootView: Panel(model: model))
         controller.sizingOptions = [.preferredContentSize] // popover height follows the compact content
         popover.contentViewController = controller
@@ -98,8 +100,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if popover.isShown { popover.performClose(nil) }
         else if let button = item.button {
             model.refresh()
+            NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            // A menu-bar-only app does not receive clicks made in other apps, so a transient
+            // popover can stay open; watch those clicks ourselves and close on the first one.
+            outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
+                Task { @MainActor in self?.popover.performClose(nil) }
+            }
         }
+    }
+    func popoverDidClose(_ notification: Notification) {
+        if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
+        outsideClickMonitor = nil
     }
     private func updateMenuTitle() {
         guard model.menuUsageEnabled else { item.button?.title = ""; return }
