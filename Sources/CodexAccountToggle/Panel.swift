@@ -3,8 +3,8 @@ import AppKit
 import SwitchCore
 
 enum PanelLayout {
-    static let width: CGFloat = 264
-    static let rowHeight: CGFloat = 26
+    static let width: CGFloat = 300
+    static let rowHeight: CGFloat = 46
     static let maxVisibleRows = 6
 }
 
@@ -39,12 +39,12 @@ struct Panel: View {
             Divider()
             if others.isEmpty {
                 Text(model.isDemo ? L10n.text("다른 계정을 추가하면 클릭 한 번으로 선택할 수 있어요.") : L10n.text("계정 추가 → 다른 계정으로 로그인…으로 추가하세요. 로그아웃은 필요 없습니다."))
-                    .font(.system(size: 10)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 10).padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.system(size: 11.5)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 12).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
             } else if others.count > PanelLayout.maxVisibleRows {
                 ScrollView { rows }.frame(height: CGFloat(PanelLayout.maxVisibleRows) * PanelLayout.rowHeight + 8)
             } else { rows }
-            if model.busy || model.loginInProgress || model.notice != .neutral || model.recovery { notice }
+            if model.busy || model.loginInProgress || model.recovery || model.notice == .error { notice }
             Divider()
             footer
         }
@@ -55,19 +55,19 @@ struct Panel: View {
 
     private var demoStrip: some View {
         HStack(spacing: 6) {
-            Text("DEMO").font(.system(size: 8, weight: .bold, design: .monospaced)).tracking(1).foregroundStyle(.secondary)
+            Text("DEMO").font(.system(size: 9, weight: .bold, design: .monospaced)).tracking(1).foregroundStyle(.secondary)
                 .padding(.horizontal, 5).padding(.vertical, 2).overlay(Capsule().strokeBorder(Palette.line))
                 .accessibilityLabel(L10n.text("데모 모드"))
-            Text(L10n.text("샘플 계정만 바뀝니다")).font(.system(size: 9.5)).foregroundStyle(.secondary)
+            Text(L10n.text("샘플 계정만 바뀝니다")).font(.system(size: 11)).foregroundStyle(.secondary)
             Spacer(minLength: 0)
-        }.padding(.horizontal, 10).padding(.top, 6).padding(.bottom, 2)
+        }.padding(.horizontal, 12).padding(.top, 7).padding(.bottom, 2)
     }
 
     private var emptyCurrent: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Label(L10n.text("저장된 현재 계정 없음"), systemImage: "person.crop.circle.badge.questionmark").font(.system(size: 11.5, weight: .medium))
-            Text(L10n.text("로그인한 계정을 저장하면 여기에 표시됩니다.")).font(.system(size: 10)).foregroundStyle(.secondary)
-        }.padding(.horizontal, 10).padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
+            Label(L10n.text("저장된 현재 계정 없음"), systemImage: "person.crop.circle.badge.questionmark").font(.system(size: 13, weight: .medium))
+            Text(L10n.text("로그인한 계정을 저장하면 여기에 표시됩니다.")).font(.system(size: 11.5)).foregroundStyle(.secondary)
+        }.padding(.horizontal, 12).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func currentRow(_ profile: Profile) -> some View {
@@ -85,7 +85,7 @@ struct Panel: View {
             detailLine(left: detail.left, right: detail.right, help: detail.help, warning: warning)
             if window != nil { quotaBar(remaining) }
         }
-        .padding(.horizontal, 10).padding(.vertical, 8)
+        .padding(.horizontal, 12).padding(.vertical, 10)
         .background(Palette.accent.opacity(0.06))
         .contextMenu {
             Button(L10n.text("이름 변경…")) { model.rename(profile) }
@@ -98,18 +98,18 @@ struct Panel: View {
     }
     private func titleLine(_ profile: Profile, usage: UsageSnapshot?, remaining: Double?) -> some View {
         HStack(spacing: 7) {
-            avatar(profile, size: 22, active: true)
-            Text(profile.name).font(.system(size: 12.5, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+            avatar(profile, size: 26, active: true)
+            Text(profile.name).font(.system(size: 14, weight: .semibold)).lineLimit(1).truncationMode(.middle)
             planBadge(profile)
             Spacer(minLength: 6)
-            percentLabel(usage: usage, remaining: remaining, size: 14)
+            percentLabel(usage: usage, remaining: remaining, size: 16)
         }
     }
     private func detailLine(left: String, right: String, help: String, warning: Bool) -> some View {
         HStack(spacing: 6) {
-            Text(left).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+            Text(left).font(.system(size: 11.5)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
             Spacer(minLength: 6)
-            Text(right).font(.system(size: 10)).lineLimit(1).fixedSize().foregroundStyle(warning ? Palette.warning : Color.secondary)
+            Text(right).font(.system(size: 11.5)).lineLimit(1).fixedSize().foregroundStyle(warning ? Palette.warning : Color.secondary)
         }.help(help)
     }
     private func quotaBar(_ remaining: Double?) -> some View {
@@ -117,7 +117,7 @@ struct Panel: View {
             Capsule().fill(Palette.accent.opacity(0.12))
             Capsule().fill((remaining ?? 100) <= 20 ? Palette.warning : Palette.accent)
                 .frame(width: geometry.size.width * (remaining ?? 0) / 100)
-        }.frame(height: 3).padding(.top, 2).accessibilityHidden(true)
+        }.frame(height: 4).padding(.top, 2).accessibilityHidden(true)
     }
 
     private var rows: some View {
@@ -128,18 +128,27 @@ struct Panel: View {
         let window = usage.flatMap { orderedWindows($0).first }
         let schedule = ResetSchedule(timestamp: window?.resetsAt, now: Date(), language: L10n.language)
         let remaining: Double? = window.flatMap { $0.resetPassed(at: Date()) ? nil : $0.remainingPercent }
+        let hasDetail = (usage?.plan != nil) || (window != nil && !schedule.remainingLabel.isEmpty)
         return Button { model.switchTo(profile) } label: {
-            HStack(spacing: 7) {
-                avatar(profile, size: 18, active: false)
-                Text(profile.name).font(.system(size: 11.5, weight: .medium)).foregroundStyle(.primary).lineLimit(1).truncationMode(.middle)
-                planBadge(profile)
-                Spacer(minLength: 6)
-                if window != nil, !schedule.remainingLabel.isEmpty, !schedule.needsRefresh {
-                    Text(schedule.remainingLabel).font(.system(size: 9.5)).foregroundStyle(.secondary).fixedSize().help(schedule.compactLabel)
+            HStack(alignment: .center, spacing: 8) {
+                avatar(profile, size: 24, active: false)
+                VStack(alignment: .leading, spacing: 2) {
+                    // The name owns the first line; details never push it aside.
+                    Text(profile.name).font(.system(size: 13, weight: .medium)).foregroundStyle(.primary).lineLimit(1).truncationMode(.tail)
+                    if hasDetail {
+                        HStack(spacing: 6) {
+                            planBadge(profile)
+                            if window != nil, !schedule.remainingLabel.isEmpty {
+                                Text(schedule.needsRefresh ? schedule.remainingLabel : window!.title + " · " + schedule.remainingLabel)
+                                    .font(.system(size: 11)).foregroundStyle(schedule.needsRefresh ? Palette.warning : .secondary).lineLimit(1).help(schedule.compactLabel)
+                            }
+                        }
+                    }
                 }
-                percentLabel(usage: usage, remaining: remaining, size: 11.5)
-                Image(systemName: "arrow.left.arrow.right").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
-            }.padding(.horizontal, 10).frame(height: PanelLayout.rowHeight).contentShape(Rectangle())
+                Spacer(minLength: 8)
+                percentLabel(usage: usage, remaining: remaining, size: 14)
+                Image(systemName: "arrow.left.arrow.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+            }.padding(.horizontal, 12).padding(.vertical, hasDetail ? 6 : 8).contentShape(Rectangle())
         }
         .buttonStyle(RowButtonStyle()).disabled(model.busy || model.recovery || model.loginInProgress)
         .help(L10n.format("%@ 계정으로 전환", profile.email))
@@ -163,8 +172,8 @@ struct Panel: View {
 
     @ViewBuilder private func planBadge(_ profile: Profile) -> some View {
         if let usage = model.usage[profile.id], usage.plan != nil {
-            Text(usage.planLabel).font(.system(size: 8, weight: .semibold))
-                .foregroundStyle(Palette.accent).padding(.horizontal, 4).padding(.vertical, 1.5)
+            Text(usage.planLabel).font(.system(size: 9.5, weight: .semibold))
+                .foregroundStyle(Palette.accent).padding(.horizontal, 5).padding(.vertical, 2)
                 .background(Palette.accent.opacity(0.09), in: Capsule()).fixedSize()
                 .help(usage.isDemo ? L10n.text("샘플 요금제") : L10n.text("마지막 확인한 요금제"))
         }
@@ -172,7 +181,7 @@ struct Panel: View {
 
     private func percentLabel(usage: UsageSnapshot?, remaining: Double?, size: CGFloat) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 2) {
-            if let marker = marker(usage) { Text(marker).font(.system(size: 8.5, weight: .medium)).foregroundStyle(.secondary) }
+            if let marker = marker(usage) { Text(marker).font(.system(size: 9.5, weight: .medium)).foregroundStyle(.secondary) }
             Text(remaining.map { "\(Int($0.rounded(.down)))%" } ?? "—")
                 .font(.system(size: size, weight: .semibold, design: .rounded)).monospacedDigit()
                 .foregroundStyle(usage == nil ? Color.secondary : (remaining ?? 100) <= 20 ? Palette.warning : Color.primary)
@@ -212,8 +221,8 @@ struct Panel: View {
     private var notice: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             if model.busy || model.loginInProgress { ProgressView().controlSize(.mini) }
-            else { Image(systemName: model.notice == .error ? "exclamationmark.circle" : "checkmark.circle").font(.system(size: 10)) }
-            Text(model.message).font(.system(size: 10.5)).lineLimit(3).fixedSize(horizontal: false, vertical: true)
+            else { Image(systemName: model.notice == .error ? "exclamationmark.circle" : "checkmark.circle").font(.system(size: 11.5)) }
+            Text(model.message).font(.system(size: 12)).lineLimit(3).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
             if model.loginInProgress {
                 Button(L10n.text("취소"), action: model.cancelLogin).controlSize(.mini)
@@ -224,7 +233,7 @@ struct Panel: View {
                     .buttonStyle(.plain).accessibilityLabel(L10n.text("안내 닫기"))
             }
         }.foregroundStyle(model.notice == .error ? Palette.warning : Palette.accent)
-            .padding(.horizontal, 10).padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12).padding(.vertical, 7).frame(maxWidth: .infinity, alignment: .leading)
             .background((model.notice == .error ? Palette.warning : Palette.accent).opacity(0.07))
     }
 
@@ -236,13 +245,13 @@ struct Panel: View {
                     Button(L10n.text("현재 로그인 계정 추가"), action: model.saveCurrent)
                     Button(L10n.text("로그인 파일 가져오기…"), action: model.importAccount)
                 } label: {
-                    Label(L10n.text("계정 추가"), systemImage: "plus").font(.system(size: 11)).padding(.horizontal, 2)
+                    Label(L10n.text("계정 추가"), systemImage: "plus").font(.system(size: 12.5)).padding(.horizontal, 2)
                 }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().foregroundStyle(.secondary)
                     .help(L10n.text("다른 계정으로 로그인…")).disabled(model.busy || model.loginInProgress)
             }
             Spacer(minLength: 0)
             Button { model.refresh(); model.refreshLiveUsage(force: true) } label: {
-                Image(systemName: "arrow.clockwise").font(.system(size: 11)).frame(width: 22, height: 22)
+                Image(systemName: "arrow.clockwise").font(.system(size: 12.5)).frame(width: 24, height: 24)
             }.buttonStyle(.plain).help(L10n.text("계정 새로고침")).accessibilityLabel(L10n.text("계정 새로고침")).disabled(model.busy)
             Menu {
                 Toggle(L10n.text("주간 우선 표시"), isOn: $weeklyFirst)
@@ -263,10 +272,10 @@ struct Panel: View {
                 Divider()
                 Button(model.isDemo ? L10n.text("실제 계정 모드로 전환 (재실행)") : L10n.text("데모 모드로 전환 (재실행)")) { model.switchMode(toLive: model.isDemo) }
                 Button(L10n.text("Codex Account Toggle 종료")) { NSApp.terminate(nil) }
-            } label: { Image(systemName: "gearshape").font(.system(size: 11)).frame(width: 22, height: 22) }
+            } label: { Image(systemName: "gearshape").font(.system(size: 12.5)).frame(width: 24, height: 24) }
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
                 .help(L10n.text("앱 설정")).accessibilityLabel(L10n.text("앱 설정")).disabled(model.busy)
-        }.foregroundStyle(.secondary).padding(.horizontal, 8).padding(.vertical, 3)
+        }.foregroundStyle(.secondary).padding(.horizontal, 10).padding(.vertical, 4)
     }
 }
 

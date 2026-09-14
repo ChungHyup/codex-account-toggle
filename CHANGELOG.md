@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Larger panel type (300 points wide): names 13–14 pt, details 11–11.5 pt, percentages 14–16 pt. Waiting accounts use two lines so long names stay readable. Success confirmations no longer appear; only progress, sign-in, recovery, and errors are shown.
 - Right-click a row to delete the app's saved copy of an account (its credential snapshot and cached usage); the real Codex sign-in is never changed. Cancel is the default button.
 - Add account is now a menu: **Sign in to another account…** runs `codex login` in a throwaway `CODEX_HOME` and imports only the new `auth.json` (no logout of the signed-in account, as in the reference project), plus save-signed-in and import-file.
 - Add account no longer renames an already-saved signed-in account; it refreshes its stored copy and explains that another account must be signed in to Codex first (or imported from a file).
