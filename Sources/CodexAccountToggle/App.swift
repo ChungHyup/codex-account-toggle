@@ -158,7 +158,9 @@ final class Model: ObservableObject {
     @Published var usage: [String: UsageSnapshot] = [:]
     @Published var menuUsageEnabled = true
     @Published var liveUsageError: String?
+    @Published var loginInProgress = false
     let liveUsage = CurrentUsageState()
+    private var temporaryLogin: TemporaryHomeLogin?
     private var collectingUsage = false
     private var lastLiveRefresh: (id: String, at: Date)?
     let store: Store
@@ -274,11 +276,39 @@ final class Model: ObservableObject {
     private func explainAlreadySaved(_ profile: Profile) {
         let alert = NSAlert()
         alert.messageText = L10n.format("%@ 계정은 이미 저장되어 있습니다", profile.name)
-        alert.informativeText = L10n.text("다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 다시 누르세요. 저장해 둔 auth.json 파일이 있으면 바로 가져올 수도 있습니다.")
+        alert.informativeText = L10n.text("다른 계정을 추가하려면 계정 추가 → 다른 계정으로 로그인…을 누르세요. ChatGPT 앱에서 로그아웃할 필요가 없습니다.")
+        alert.addButton(withTitle: L10n.text("다른 계정으로 로그인…"))
         alert.addButton(withTitle: L10n.text("확인"))
-        alert.addButton(withTitle: L10n.text("로그인 파일 가져오기…"))
-        if alert.runModal() == .alertSecondButtonReturn { importAccount() }
+        if alert.runModal() == .alertFirstButtonReturn { loginAnotherAccount() }
     }
+    /// Owner-authorized (2026-09-14): `codex login` runs in a throwaway CODEX_HOME so the signed-in
+    /// account is never logged out; only the new account's file is imported, then the home is removed.
+    func loginAnotherAccount() {
+        guard !isDemo, !busy, !loginInProgress else { return }
+        guard let executable = CodexExecutable.locate(candidates: codexCandidates()) else {
+            show(SwitchError(L10n.text("Codex 실행 파일을 찾지 못했습니다.")))
+            return
+        }
+        let login = TemporaryHomeLogin(executable: executable)
+        temporaryLogin = login
+        loginInProgress = true
+        notice = .neutral
+        message = L10n.text("브라우저에서 다른 계정으로 로그인하세요. 완료되면 자동으로 저장됩니다.")
+        Task { @MainActor in
+            defer { loginInProgress = false; temporaryLogin = nil }
+            do {
+                let data = try await login.run()
+                NSApp.activate(ignoringOtherApps: true)
+                try add(data: data)
+            } catch TemporaryLoginError.cancelled {
+                notice = .neutral
+                message = L10n.text("로그인을 취소했습니다.")
+            } catch {
+                show(SwitchError(L10n.text("로그인이 완료되지 않았습니다. 브라우저 창을 닫고 다시 시도하세요.")))
+            }
+        }
+    }
+    func cancelLogin() { temporaryLogin?.cancel() }
     func importAccount() {
         guard !isDemo else { return }
         let panel = NSOpenPanel()

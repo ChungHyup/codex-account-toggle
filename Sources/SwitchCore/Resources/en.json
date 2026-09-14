@@ -131,5 +131,12 @@
   "%@ 계정은 이미 저장되어 있습니다": "%@ is already saved",
   "다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 다시 누르세요. 저장해 둔 auth.json 파일이 있으면 바로 가져올 수도 있습니다.": "To add another account, sign in to it in Codex and press Add account again. You can also import a saved auth.json file.",
   "확인": "OK",
-  "다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 누르세요.": "To add another account, sign in to it in Codex, then press Add account."
+  "다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 누르세요.": "To add another account, sign in to it in Codex, then press Add account.",
+  "다른 계정으로 로그인…": "Sign in to another account…",
+  "브라우저에서 다른 계정으로 로그인하세요. 완료되면 자동으로 저장됩니다.": "Sign in to the other account in your browser. It is saved here automatically when done.",
+  "로그인을 취소했습니다.": "Sign-in cancelled.",
+  "로그인이 완료되지 않았습니다. 브라우저 창을 닫고 다시 시도하세요.": "Sign-in did not complete. Close the browser window and try again.",
+  "Codex 실행 파일을 찾지 못했습니다.": "Codex executable not found.",
+  "다른 계정을 추가하려면 계정 추가 → 다른 계정으로 로그인…을 누르세요. ChatGPT 앱에서 로그아웃할 필요가 없습니다.": "To add another account, choose Add account → Sign in to another account…. You do not need to log out of the ChatGPT app.",
+  "계정 추가 → 다른 계정으로 로그인…으로 추가하세요. 로그아웃은 필요 없습니다.": "Add one with Add account → Sign in to another account…. No logout needed."
 }

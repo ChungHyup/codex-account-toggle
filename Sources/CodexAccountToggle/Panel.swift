@@ -38,13 +38,13 @@ struct Panel: View {
             if let active { currentRow(active) } else { emptyCurrent }
             Divider()
             if others.isEmpty {
-                Text(model.isDemo ? L10n.text("다른 계정을 추가하면 클릭 한 번으로 선택할 수 있어요.") : L10n.text("다른 계정을 추가하려면 Codex에서 그 계정으로 로그인한 뒤 계정 추가를 누르세요."))
+                Text(model.isDemo ? L10n.text("다른 계정을 추가하면 클릭 한 번으로 선택할 수 있어요.") : L10n.text("계정 추가 → 다른 계정으로 로그인…으로 추가하세요. 로그아웃은 필요 없습니다."))
                     .font(.system(size: 10)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 10).padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
             } else if others.count > PanelLayout.maxVisibleRows {
                 ScrollView { rows }.frame(height: CGFloat(PanelLayout.maxVisibleRows) * PanelLayout.rowHeight + 8)
             } else { rows }
-            if model.busy || model.notice != .neutral || model.recovery { notice }
+            if model.busy || model.loginInProgress || model.notice != .neutral || model.recovery { notice }
             Divider()
             footer
         }
@@ -137,7 +137,7 @@ struct Panel: View {
                 Image(systemName: "arrow.left.arrow.right").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
             }.padding(.horizontal, 10).frame(height: PanelLayout.rowHeight).contentShape(Rectangle())
         }
-        .buttonStyle(RowButtonStyle()).disabled(model.busy || model.recovery)
+        .buttonStyle(RowButtonStyle()).disabled(model.busy || model.recovery || model.loginInProgress)
         .help(L10n.format("%@ 계정으로 전환", profile.email))
         .accessibilityLabel(L10n.format("%@, %@, 계정 전환", profile.name, profile.email))
         .contextMenu { Button(L10n.text("이름 변경…")) { model.rename(profile) } }
@@ -203,11 +203,13 @@ struct Panel: View {
 
     private var notice: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            if model.busy { ProgressView().controlSize(.mini) }
+            if model.busy || model.loginInProgress { ProgressView().controlSize(.mini) }
             else { Image(systemName: model.notice == .error ? "exclamationmark.circle" : "checkmark.circle").font(.system(size: 10)) }
             Text(model.message).font(.system(size: 10.5)).lineLimit(3).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
-            if model.recovery {
+            if model.loginInProgress {
+                Button(L10n.text("취소"), action: model.cancelLogin).controlSize(.mini)
+            } else if model.recovery {
                 Button(L10n.text("복구"), action: model.restore).controlSize(.mini).disabled(model.busy)
             } else if !model.busy {
                 Button { model.notice = .neutral } label: { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).frame(width: 16, height: 16) }
@@ -221,9 +223,14 @@ struct Panel: View {
     private var footer: some View {
         HStack(spacing: 2) {
             if !model.isDemo || productPreview {
-                Button(action: model.saveCurrent) {
+                Menu {
+                    Button(L10n.text("다른 계정으로 로그인…"), action: model.loginAnotherAccount)
+                    Button(L10n.text("현재 로그인 계정 추가"), action: model.saveCurrent)
+                    Button(L10n.text("로그인 파일 가져오기…"), action: model.importAccount)
+                } label: {
                     Label(L10n.text("계정 추가"), systemImage: "plus").font(.system(size: 11)).padding(.horizontal, 2)
-                }.buttonStyle(.plain).foregroundStyle(.secondary).help(L10n.text("현재 로그인 계정 추가")).disabled(model.busy)
+                }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().foregroundStyle(.secondary)
+                    .help(L10n.text("다른 계정으로 로그인…")).disabled(model.busy || model.loginInProgress)
             }
             Spacer(minLength: 0)
             Button { model.refresh(); model.refreshLiveUsage(force: true) } label: {
@@ -247,7 +254,6 @@ struct Panel: View {
                 }
                 Divider()
                 Button(model.isDemo ? L10n.text("실제 계정 모드로 전환 (재실행)") : L10n.text("데모 모드로 전환 (재실행)")) { model.switchMode(toLive: model.isDemo) }
-                if !model.isDemo { Button(L10n.text("로그인 파일 가져오기…"), action: model.importAccount) }
                 Button(L10n.text("Codex Account Toggle 종료")) { NSApp.terminate(nil) }
             } label: { Image(systemName: "gearshape").font(.system(size: 11)).frame(width: 22, height: 22) }
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
