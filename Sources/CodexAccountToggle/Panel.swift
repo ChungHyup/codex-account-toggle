@@ -87,7 +87,11 @@ struct Panel: View {
         }
         .padding(.horizontal, 10).padding(.vertical, 8)
         .background(Palette.accent.opacity(0.06))
-        .contextMenu { Button(L10n.text("이름 변경…")) { model.rename(profile) } }
+        .contextMenu {
+            Button(L10n.text("이름 변경…")) { model.rename(profile) }
+            Divider()
+            Button(L10n.text("계정 삭제…")) { model.delete(profile) }
+        }
         .help(profile.name + " · " + profile.email)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(L10n.text("현재 선택됨") + ", " + profile.name + ", " + profile.email)
@@ -140,7 +144,11 @@ struct Panel: View {
         .buttonStyle(RowButtonStyle()).disabled(model.busy || model.recovery || model.loginInProgress)
         .help(L10n.format("%@ 계정으로 전환", profile.email))
         .accessibilityLabel(L10n.format("%@, %@, 계정 전환", profile.name, profile.email))
-        .contextMenu { Button(L10n.text("이름 변경…")) { model.rename(profile) } }
+        .contextMenu {
+            Button(L10n.text("이름 변경…")) { model.rename(profile) }
+            Divider()
+            Button(L10n.text("계정 삭제…")) { model.delete(profile) }
+        }
     }
 
     private func avatar(_ profile: Profile, size: CGFloat, active: Bool) -> some View {

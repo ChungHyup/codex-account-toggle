@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Right-click a row to delete the app's saved copy of an account (its credential snapshot and cached usage); the real Codex sign-in is never changed. Cancel is the default button.
 - Add account is now a menu: **Sign in to another account…** runs `codex login` in a throwaway `CODEX_HOME` and imports only the new `auth.json` (no logout of the signed-in account, as in the reference project), plus save-signed-in and import-file.
 - Add account no longer renames an already-saved signed-in account; it refreshes its stored copy and explains that another account must be signed in to Codex first (or imported from a file).
 - Live mode is remembered after an explicit `--live` launch or the new gear-menu switch, so reopening the app keeps real accounts; `--demo` or the same menu returns to demo mode.

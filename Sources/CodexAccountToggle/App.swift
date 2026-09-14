@@ -384,6 +384,24 @@ final class Model: ObservableObject {
         }
         NSApp.terminate(nil)
     }
+    /// Deletes only this app's saved copy; Codex's current sign-in is not changed.
+    func delete(_ profile: Profile) {
+        guard !busy, !recovery, !loginInProgress else { return }
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L10n.format("‘%@’ 저장본을 삭제할까요?", profile.name)
+        alert.informativeText = L10n.text("앱에 저장된 로그인 사본과 사용량 기록만 삭제되며 Codex의 현재 로그인은 바뀌지 않습니다.")
+        alert.addButton(withTitle: L10n.text("취소"))
+        alert.addButton(withTitle: L10n.text("삭제"))
+        if #available(macOS 11.0, *) { alert.buttons[1].hasDestructiveAction = true }
+        guard alert.runModal() == .alertSecondButtonReturn else { return }
+        do {
+            try store.remove(profile)
+            notice = .success
+            message = L10n.text("저장된 계정을 삭제했습니다.")
+            refresh()
+        } catch { show(error) }
+    }
     func rename(_ profile: Profile) {
         guard !busy else { return }
         let alert = NSAlert()

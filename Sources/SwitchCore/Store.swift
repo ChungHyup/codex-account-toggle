@@ -91,6 +91,17 @@ public final class Store {
         list[position].name = cleaned
         try write(JSONEncoder().encode(list), to: index)
     }
+    /// Removes this app's saved copy of an account and its cached usage. The real sign-in is untouched.
+    public func remove(_ profile: Profile) throws {
+        var list = try profiles()
+        guard let position = list.firstIndex(where: { $0.id == profile.id }) else { throw SwitchError(L10n.text("저장된 계정을 찾을 수 없습니다.")) }
+        list.remove(at: position)
+        try write(JSONEncoder().encode(list), to: index)
+        let snapshot = root.appendingPathComponent(profile.id + ".auth.json")
+        if FileManager.default.fileExists(atPath: snapshot.path) { try FileManager.default.removeItem(at: snapshot) }
+        var cache = try cachedUsage()
+        if cache.removeValue(forKey: profile.id) != nil { try saveUsage(cache) }
+    }
     public func read(_ url: URL) throws -> Data {
         let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
         guard attrs[.type] as? FileAttributeType == .typeRegular else { throw SwitchError(L10n.text("일반 파일만 사용할 수 있습니다.")) }

@@ -139,5 +139,10 @@
   "Codex 실행 파일을 찾지 못했습니다.": "Codex executable not found.",
   "다른 계정을 추가하려면 계정 추가 → 다른 계정으로 로그인…을 누르세요. ChatGPT 앱에서 로그아웃할 필요가 없습니다.": "To add another account, choose Add account → Sign in to another account…. You do not need to log out of the ChatGPT app.",
   "계정 추가 → 다른 계정으로 로그인…으로 추가하세요. 로그아웃은 필요 없습니다.": "Add one with Add account → Sign in to another account…. No logout needed.",
-  "저장된 계정의 로그인 정보를 갱신했습니다.": "Updated the saved account's sign-in."
+  "저장된 계정의 로그인 정보를 갱신했습니다.": "Updated the saved account's sign-in.",
+  "계정 삭제…": "Delete account…",
+  "‘%@’ 저장본을 삭제할까요?": "Delete the saved copy of ‘%@’?",
+  "앱에 저장된 로그인 사본과 사용량 기록만 삭제되며 Codex의 현재 로그인은 바뀌지 않습니다.": "Only this app's saved sign-in copy and usage record are deleted; the current Codex sign-in does not change.",
+  "삭제": "Delete",
+  "저장된 계정을 삭제했습니다.": "Deleted the saved account."
 }

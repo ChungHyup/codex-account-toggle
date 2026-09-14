@@ -14,6 +14,20 @@ final class StoreTests: XCTestCase {
     func fixture(_ account: String, refresh: String = "fake-refresh") -> Data {
         Data("{\"auth_mode\":\"chatgpt\",\"tokens\":{\"account_id\":\"\(account)\",\"access_token\":\"fake-access\",\"refresh_token\":\"\(refresh)\"}}".utf8)
     }
+    func testRemoveDeletesOnlyThatAccountsCopy() throws {
+        let a = try store.save(data: fixture("a"), name: "A")
+        let b = try store.save(data: fixture("b"), name: "B")
+        try store.write(fixture("a"), to: store.active)
+        let reading = SessionUsageObservation(observedAt: Date(timeIntervalSince1970: 1), plan: "plus", limit: UsageLimit(planType: "plus", primary: nil, secondary: nil))
+        try store.saveUsage([a.id: reading, b.id: reading])
+        try store.remove(b)
+        XCTAssertEqual(try store.profiles().map(\.id), [a.id])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.root.appendingPathComponent(b.id + ".auth.json").path))
+        XCTAssertEqual(try store.auth(a), fixture("a"))
+        XCTAssertEqual(try store.cachedUsage().keys.sorted(), [a.id])
+        XCTAssertEqual(try store.read(store.active), fixture("a"), "the real sign-in is never touched")
+        XCTAssertThrowsError(try store.remove(b))
+    }
     func testSwitchRollbackPreservesOtherFilesAndPermissions() throws {
         let a = fixture("a"), b = fixture("b")
         try store.write(a, to: store.active)

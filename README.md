@@ -10,7 +10,7 @@ A small macOS menu-bar utility for choosing between saved Codex accounts. Built 
 
 ## What works today
 
-- Three synthetic accounts in demo mode, account renaming, and simulated switching/recovery.
+- Three synthetic accounts in demo mode, account renaming and deletion of saved copies (right-click a row), and simulated switching/recovery.
 - Korean and English UI, light/dark themes, and visible account management menus.
 - Sample plan badges, weekly-only demo quota percentages, and exact reset dates/countdowns in Korea time (KST).
 - Weekly-first display and optional menu-bar quota (`D` marks demo data; `~` marks an old reading).
@@ -52,7 +52,7 @@ ditto 'dist/Codex Account Toggle.app' "$HOME/Applications/Codex Account Toggle.a
 open "$HOME/Applications/Codex Account Toggle.app"
 ```
 
-Open `dist/Codex Account Toggle.app`, then click its circular-arrows menu-bar icon. Choose a demo account. The lower settings control simulates success, refused quit, or launch failure/recovery. Use each account's `…` menu to rename it.
+Open `dist/Codex Account Toggle.app`, then click its circular-arrows menu-bar icon. Click a demo account row to switch. The gear menu's switch scenario simulates success, refused quit, or launch failure/recovery. Right-click a row to rename it or delete its saved copy.
 
 The language follows macOS (Korean, otherwise English). The gear menu lets you choose System, 한국어, or English; reopen **Codex Account Toggle** to apply. This never requires restarting Codex. Date labels are localized while their timezone stays explicitly KST.
 
