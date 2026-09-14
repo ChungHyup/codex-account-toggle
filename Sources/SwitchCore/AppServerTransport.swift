@@ -93,7 +93,8 @@ public final class AppServerTransport: CurrentAccountTransport {
         generation += 1
         let launch = generation
         process.terminationHandler = { [weak self] _ in
-            Task { @MainActor in self?.serverExited(generation: launch) }
+            guard let self else { return }
+            Task { @MainActor in self.serverExited(generation: launch) }
         }
         do { try process.run() } catch { throw AppServerTransportError.launchFailed }
         self.process = process
@@ -104,7 +105,8 @@ public final class AppServerTransport: CurrentAccountTransport {
         output?.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if data.isEmpty { handle.readabilityHandler = nil }
-            Task { @MainActor in self?.consume(data, generation: launch) }
+            guard let self else { return }
+            Task { @MainActor in self.consume(data, generation: launch) }
         }
         let initID = "init-" + UUID().uuidString
         let params: [String: Any] = [

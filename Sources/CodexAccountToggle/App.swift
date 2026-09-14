@@ -125,7 +125,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             // A menu-bar-only app does not receive clicks made in other apps, so a transient
             // popover can stay open; watch those clicks ourselves and close on the first one.
             outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
-                Task { @MainActor in self?.popover.performClose(nil) }
+                guard let self else { return }
+                Task { @MainActor in self.popover.performClose(nil) }
             }
         }
     }
