@@ -72,6 +72,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: RunLoop.main).sink { [weak self] _, _, _ in self?.updateMenuTitle() }.store(in: &subscriptions)
         Timer.publish(every: 30, on: .main, in: .common).autoconnect()
             .sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
+        // Live mode re-reads Codex's local session logs; this is file reading only, never a request.
+        Timer.publish(every: 300, on: .main, in: .common).autoconnect()
+            .sink { [weak self] _ in self?.model.refreshUsage() }.store(in: &subscriptions)
         updateMenuTitle()
         popover.behavior = .transient
         popover.contentSize = NSSize(width: PanelLayout.width, height: PanelLayout.height)
@@ -101,7 +104,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let value = remaining.map { "\(Int($0.rounded(.down)))%" } ?? "—"
         let stale = snapshot?.isStale(at: Date()) == true ? "~" : ""
         item.button?.title = " " + (model.isDemo ? "D " : "") + stale + value
-        item.button?.toolTip = (model.isDemo ? L10n.text("샘플 · ") : "") + (window?.title ?? L10n.text("사용 한도")) + " · " + value + L10n.text(" 남음")
+        let prefix = snapshot?.source == .sessionLog ? L10n.text("기록 · ") : model.isDemo ? L10n.text("샘플 · ") : ""
+        item.button?.toolTip = prefix + (window?.title ?? L10n.text("사용 한도")) + " · " + value + L10n.text(" 남음")
     }
 }
 
@@ -116,6 +120,7 @@ final class Model: ObservableObject {
     @Published var scenario: DemoScenario = .success
     @Published var usage: [String: UsageSnapshot] = [:]
     @Published var menuUsageEnabled = true
+    private var collectingUsage = false
     let store: Store
     let isDemo: Bool
     let lifecycle: AppLifecycle
@@ -148,10 +153,26 @@ final class Model: ObservableObject {
             recovery = FileManager.default.fileExists(atPath: store.backup.path)
             if recovery { notice = .error; message = L10n.text("완료되지 않은 전환이 있습니다. 이전 로그인을 복구하세요.") }
         } catch { message = L10n.text("계정 목록을 읽지 못했습니다. 저장 폴더를 확인하세요.") }
+        refreshUsage()
+    }
+    /// Live mode: quota comes from readings Codex already wrote to its local session logs.
+    /// Nothing is launched or requested; the signed-in account is only noted for attribution.
+    func refreshUsage() {
+        guard !isDemo, !collectingUsage, !profiles.isEmpty else { return }
+        if let current { try? store.note(identity: current, kind: .observed) }
+        collectingUsage = true
+        let root = store.root, home = store.home, ids = profiles.map(\.id)
+        Task.detached(priority: .utility) {
+            let result = SessionUsage.collect(store: Store(root: root, home: home), profileIDs: ids)
+            await MainActor.run { [weak self] in
+                self?.usage = result
+                self?.collectingUsage = false
+            }
+        }
     }
     func saveCurrent() {
         guard !isDemo else { return }
-        do { try store.validateBackend(); try add(data: store.read(store.active)) }
+        do { try store.validateBackend(); try add(data: store.read(store.active), isSignedIn: true) }
         catch { show(error) }
     }
     func importAccount() {
@@ -164,7 +185,7 @@ final class Model: ObservableObject {
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do { try add(data: store.read(url)) } catch { show(error) }
     }
-    func add(data: Data) throws {
+    func add(data: Data, isSignedIn: Bool = false) throws {
         guard !isDemo else { return }
         let identity = try Identity(data: data)
         let alert = NSAlert()
@@ -176,7 +197,9 @@ final class Model: ObservableObject {
         alert.addButton(withTitle: L10n.text("저장"))
         alert.addButton(withTitle: L10n.text("취소"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
-        try store.save(data: data, name: field.stringValue)
+        let profile = try store.save(data: data, name: field.stringValue)
+        // A saved signed-in account anchors attribution of earlier session-log readings; an imported file does not.
+        if isSignedIn { try? store.note(identity: profile.id, kind: .saved) }
         message = L10n.text("계정을 저장했습니다. 다른 계정으로 로그인한 뒤 다시 저장하면 목록에 추가됩니다.")
         refresh()
     }

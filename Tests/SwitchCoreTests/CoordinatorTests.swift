@@ -21,6 +21,8 @@ final class CoordinatorTests: XCTestCase {
             XCTAssertTrue(app.running)
             XCTAssertFalse(FileManager.default.fileExists(atPath: store.backup.path))
             XCTAssertFalse(coordinator.isSwitching)
+            XCTAssertEqual(try store.identityPoints().last.map { ($0.id, $0.kind) }?.0, target.id)
+            XCTAssertEqual(try store.identityPoints().last?.kind, .switched)
         }
     }
     func testQuitRefusedDoesNotChangeAuthentication() async throws {

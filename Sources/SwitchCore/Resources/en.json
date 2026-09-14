@@ -117,5 +117,8 @@
   "Codex 또는 CLI가 실행 중입니다. 진행 중인 작업을 마치고 CLI를 직접 종료하세요. 계속하면 Codex 앱을 정상 종료하고 계정을 전환한 뒤 다시 엽니다. 종료되지 않으면 전환을 중단합니다.": "Codex or its CLI is running. Finish your tasks and close the CLI yourself. Continuing quits the Codex app normally, switches accounts, and reopens it. If it cannot quit, the switch stops.",
   "계정을 전환한 뒤 Codex를 엽니다. 그 사이 Codex를 실행하면 종료 후 다시 열 수 있으니 새 작업을 시작하지 마세요.": "Codex will open after switching accounts. If you start Codex in the meantime, it may be closed and reopened, so do not start a new task.",
   "계정 전환 및 재시작": "Switch account and restart",
-  "계정 전환 및 열기": "Switch account and open"
+  "계정 전환 및 열기": "Switch account and open",
+  "Codex 세션 기록 · 마지막 %@": "Codex session records · last %@",
+  "기록 · ": "Recorded · ",
+  "사용량 기록 없음 · Codex를 사용하면 표시됩니다": "No recorded usage yet · appears after you use Codex"
 }

@@ -38,6 +38,8 @@ public final class SwitchCoordinator {
             progress(L10n.text("로그인 교체 완료 · 앱 실행 중…"))
             try await lifecycle.launch()
             try store.commit()
+            // Exact boundary for attributing later session-log readings; never fails the switch.
+            try? store.note(identity: profile.id, kind: .switched)
         } catch {
             if FileManager.default.fileExists(atPath: store.backup.path) {
                 guard try !lifecycle.isRunning() else {

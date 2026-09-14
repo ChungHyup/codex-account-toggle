@@ -45,7 +45,22 @@ public final class Store {
     public let home: URL
     public var active: URL { home.appendingPathComponent("auth.json") }
     public var backup: URL { root.appendingPathComponent("recovery.auth.json") }
+    /// Codex's own session logs; read only, never written.
+    public var sessions: URL { home.appendingPathComponent("sessions") }
     private var index: URL { root.appendingPathComponent("profiles.json") }
+    private var points: URL { root.appendingPathComponent("identity-points.json") }
+    private var usage: URL { root.appendingPathComponent("usage.json") }
+    private static let encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return encoder
+    }()
+    private static let decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }()
     public init(root: URL, home: URL) { self.root = root; self.home = home }
     public func prepare() throws {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
@@ -131,4 +146,28 @@ public final class Store {
         try commit()
     }
     public func commit() throws { try FileManager.default.removeItem(at: backup) }
+
+    /// Moments when this app knew which account was signed in; used to attribute session-log readings.
+    public func identityPoints() throws -> [IdentityPoint] {
+        guard FileManager.default.fileExists(atPath: points.path) else { return [] }
+        return try Store.decoder.decode([IdentityPoint].self, from: read(points))
+    }
+    /// Passive confirmations of an unchanged account are kept to one per hour.
+    public func note(identity: String, kind: IdentityPointKind, at date: Date = Date()) throws {
+        var list = try identityPoints()
+        if kind == .observed, let last = list.last, last.id == identity, date.timeIntervalSince(last.at) < 3600 { return }
+        list.append(IdentityPoint(at: date, id: identity, kind: kind))
+        if list.count > 2000 { list.removeFirst(list.count - 2000) }
+        try prepare()
+        try write(Store.encoder.encode(list), to: points)
+    }
+    /// Last session-log reading per profile; survives Codex log rotation.
+    public func cachedUsage() throws -> [String: SessionUsageObservation] {
+        guard FileManager.default.fileExists(atPath: usage.path) else { return [:] }
+        return try Store.decoder.decode([String: SessionUsageObservation].self, from: read(usage))
+    }
+    public func saveUsage(_ cache: [String: SessionUsageObservation]) throws {
+        try prepare()
+        try write(Store.encoder.encode(cache), to: usage)
+    }
 }

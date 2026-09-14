@@ -14,15 +14,16 @@ A small macOS menu-bar utility for choosing between saved Codex accounts. Built 
 - Korean and English UI, light/dark themes, and visible account management menus.
 - Sample plan badges, weekly-only demo quota percentages, and exact reset dates/countdowns in Korea time (KST).
 - Weekly-first display and optional menu-bar quota (`D` marks demo data; `~` marks an old reading).
+- In `--live` mode, the last quota reading that Codex itself recorded in its local session logs (`CODEX_HOME/sessions`), attributed to saved accounts through the app's own save/switch history. No usage request is ever sent to the service.
 - Core tests for credential-file validation, private file permissions, backups, recovery, dates, and translations.
 
 The [current-account reader](docs/read-only-connection.md) is prepared and tested with synthetic responses; its production transport remains disconnected. See the [account-switcher benchmark](docs/benchmark.md) for adopted behaviors and follow-up work.
 
 ## Important limits
 
-The default app never accesses real sign-in files or controls Codex. Usage and plans are **samples**, not live account readings. Quota windows are shown only when present in the supplied data; a five-hour limit is not assumed for every account. A quota percentage is not a token balance.
+The default app never accesses real sign-in files or controls Codex. In the demo, usage and plans are **samples**. In live mode they are the **last readings Codex recorded locally**, which update only when Codex runs, not when the panel is refreshed; readings older than any save in this app are assumed to belong to the first saved signed-in account, as in the reference project. Quota windows are shown only when present in the supplied data; a five-hour limit is not assumed for every account. A quota percentage is not a token balance.
 
-Real switching exists behind an explicit `--live` argument but is **not end-to-end validated**. It targets file-based ChatGPT credentials and the `com.openai.codex` app identifier. Keychain/auto/ephemeral credentials, API-key sign-in, Windows, production signing/notarization, and live usage collection are not supported. Do not use real sessions in development or automated testing.
+Real switching exists behind an explicit `--live` argument but is **not end-to-end validated**. It targets file-based ChatGPT credentials and the `com.openai.codex` app identifier. Keychain/auto/ephemeral credentials, API-key sign-in, Windows, production signing/notarization, and fresh usage queries against the service are not supported. Do not use real sessions in development or automated testing.
 
 ## Build and try the demo
 
@@ -66,7 +67,7 @@ For a design-only preview without demo copy, add `--product-preview` to `--rende
 
 ## Credential handling
 
-Experimental live mode reads `CODEX_HOME/auth.json` (default `~/.codex/auth.json`) and stores snapshots under `~/Library/Application Support/CodexSwitch`. Files are plaintext with mode 0600; the directory uses 0700. This is file-permission protection, not encryption. The app itself has no telemetry or network client. Project/session/skill/config files are not intentionally modified.
+Experimental live mode reads `CODEX_HOME/auth.json` (default `~/.codex/auth.json`) and stores snapshots under `~/Library/Application Support/CodexSwitch`. Files are plaintext with mode 0600; the directory uses 0700. This is file-permission protection, not encryption. The app itself has no telemetry or network client. Session logs are read only to extract quota lines; conversation content is neither parsed nor stored, and the extracted readings are cached in the same private directory. Project/session/skill/config files are not intentionally modified.
 
 Switching is designed to request a normal quit, confirm Codex processes are gone, back up the prior sign-in, replace the file, and reopen the app. Recovery is deferred when a process may still be using credentials. These file-level checks do not prove successful server authentication. See [security notes](SECURITY.md) and [implementation review](docs/review.md).
 
@@ -80,7 +81,7 @@ The app was formerly named Codex Switch. Its profile directory retains that name
 
 ## Manual QA on a separate Mac
 
-Start with the default demo. Check account names, English/Korean, light/dark appearance, weekly quota layout, and the simulated refused-quit/recovery scenarios. Live usage collection is still disconnected: real accounts will not show the sample percentages.
+Start with the default demo. Check account names, English/Korean, light/dark appearance, weekly quota layout, and the simulated refused-quit/recovery scenarios. Real accounts show the last quota reading Codex recorded locally, if any; it changes after you use Codex, not by reopening the panel.
 
 Only when you choose to test your own real accounts, finish your Codex work and close its CLI sessions. Quit **Codex Account Toggle** itself before launching it in the experimental mode below (otherwise the existing demo instance prevents a second instance):
 

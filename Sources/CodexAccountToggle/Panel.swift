@@ -120,10 +120,10 @@ struct Panel: View {
                         quotaMeter(window, fallback: window.title)
                     }
                 }
-                Text(productPreview ? L10n.text("한국 시간 (KST)") : usage.isDemo ? L10n.text("샘플 사용량 · 한국 시간 (KST)") : usage.isStale(at: Date()) ? L10n.text("마지막 확인 값 · 새로고침 필요") : L10n.format("마지막 확인 %@", String(usage.observedAt.formatted(date: .omitted, time: .shortened))))
-                    .font(.system(size: 10)).foregroundStyle(.secondary)
+                Text(usageCaption(usage)).font(.system(size: 10)).foregroundStyle(.secondary)
             } else {
-                Text(L10n.text("사용량 미확인 · 실시간 조회 연결 전")).font(.system(size: 11)).foregroundStyle(.secondary)
+                Text(model.isDemo ? L10n.text("사용량 미확인 · 실시간 조회 연결 전") : L10n.text("사용량 기록 없음 · Codex를 사용하면 표시됩니다"))
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
             }
         }.padding(12)
             .background(Palette.accent.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
@@ -210,6 +210,18 @@ struct Panel: View {
         }
     }
 
+    private func usageCaption(_ usage: UsageSnapshot) -> String {
+        if productPreview { return L10n.text("한국 시간 (KST)") }
+        switch usage.source {
+        case .demo: return L10n.text("샘플 사용량 · 한국 시간 (KST)")
+        case .sessionLog: return L10n.format("Codex 세션 기록 · 마지막 %@", recordedLabel(usage.observedAt))
+        case .live:
+            return usage.isStale(at: Date()) ? L10n.text("마지막 확인 값 · 새로고침 필요") : L10n.format("마지막 확인 %@", String(usage.observedAt.formatted(date: .omitted, time: .shortened)))
+        }
+    }
+    private func recordedLabel(_ date: Date) -> String {
+        Calendar.current.isDateInToday(date) ? date.formatted(date: .omitted, time: .shortened) : date.formatted(date: .abbreviated, time: .shortened)
+    }
     private func compactUsage(_ usage: UsageSnapshot) -> String {
         let windows = orderedWindows(usage)
         let text = windows.map { window in
@@ -217,7 +229,8 @@ struct Panel: View {
             return "\(window.title) \(percent.map { "\(Int($0.rounded(.down)))%" } ?? "—")"
         }.joined(separator: " · ")
         if usage.isStale(at: Date()) { return L10n.text("오래된 값 · 새로고침 필요") + " · " + text }
-        return text.isEmpty ? L10n.text("사용량 미확인") : (productPreview ? "" : usage.isDemo ? L10n.text("샘플 · ") : L10n.text("마지막 확인 · ")) + text + L10n.text(" 남음")
+        let prefix = productPreview ? "" : usage.source == .sessionLog ? L10n.text("기록 · ") : usage.isDemo ? L10n.text("샘플 · ") : L10n.text("마지막 확인 · ")
+        return text.isEmpty ? L10n.text("사용량 미확인") : prefix + text + L10n.text(" 남음")
     }
     private func orderedWindows(_ usage: UsageSnapshot) -> [UsageWindow] {
         guard weeklyFirst else { return usage.windows }

@@ -1,10 +1,15 @@
 import Foundation
 
 /// A quota percentage is not a token balance. Missing values remain unknown.
-public struct UsageWindow: Decodable {
+public struct UsageWindow: Codable, Equatable {
     public let usedPercent: Double?
     public let windowDurationMins: Int?
     public let resetsAt: Double?
+    public init(usedPercent: Double?, windowDurationMins: Int?, resetsAt: Double?) {
+        self.usedPercent = usedPercent
+        self.windowDurationMins = windowDurationMins
+        self.resetsAt = resetsAt
+    }
     public var remainingPercent: Double? {
         guard let usedPercent, usedPercent.isFinite else { return nil }
         return min(100, max(0, 100 - usedPercent))
@@ -22,10 +27,24 @@ public struct UsageWindow: Decodable {
     }
 }
 
-public struct UsageLimit: Decodable {
+public struct UsageLimit: Codable, Equatable {
     public let planType: String?
     public let primary: UsageWindow?
     public let secondary: UsageWindow?
+    public init(planType: String?, primary: UsageWindow?, secondary: UsageWindow?) {
+        self.planType = planType
+        self.primary = primary
+        self.secondary = secondary
+    }
+}
+
+public enum UsageSource: Equatable {
+    /// Synthetic demo values.
+    case demo
+    /// A reading returned by a live account query (transport still disconnected).
+    case live
+    /// The last reading Codex itself recorded in a local session log.
+    case sessionLog
 }
 
 public struct UsageSnapshot {
@@ -33,9 +52,20 @@ public struct UsageSnapshot {
     public let plan: String?
     public let limit: UsageLimit?
     public let observedAt: Date
-    public let isDemo: Bool
+    public let source: UsageSource
+    public var isDemo: Bool { source == .demo }
+    public init(profileID: String, plan: String?, limit: UsageLimit?, observedAt: Date, source: UsageSource) {
+        self.profileID = profileID
+        self.plan = plan
+        self.limit = limit
+        self.observedAt = observedAt
+        self.source = source
+    }
 
     public static func parse(_ data: Data, profileID: String, plan: String?, observedAt: Date, isDemo: Bool = false) throws -> UsageSnapshot {
+        try parse(data, profileID: profileID, plan: plan, observedAt: observedAt, source: isDemo ? .demo : .live)
+    }
+    public static func parse(_ data: Data, profileID: String, plan: String?, observedAt: Date, source: UsageSource) throws -> UsageSnapshot {
         struct Payload: Decodable {
             let rateLimits: UsageLimit?
             let rateLimitsByLimitId: [String: UsageLimit]?
@@ -43,20 +73,25 @@ public struct UsageSnapshot {
         let payload = try JSONDecoder().decode(Payload.self, from: data)
         // Never substitute a different metered bucket for Codex.
         let limit = payload.rateLimitsByLimitId.map { $0["codex"] } ?? payload.rateLimits
-        return UsageSnapshot(profileID: profileID, plan: plan ?? limit?.planType, limit: limit, observedAt: observedAt, isDemo: isDemo)
+        return UsageSnapshot(profileID: profileID, plan: plan ?? limit?.planType, limit: limit, observedAt: observedAt, source: source)
     }
     public var planLabel: String {
         guard let plan, !plan.isEmpty else { return L10n.text("요금제 미확인") }
-        switch plan.lowercased() {
+        let lowered = plan.lowercased()
+        switch lowered {
         case "plus": return "Plus"
         case "pro": return "Pro"
         case "free": return "Free"
         case "business", "team": return "Business"
         case "enterprise": return "Enterprise"
-        default: return plan
+        default: break
         }
+        if lowered.contains("enterprise") { return "Enterprise" }
+        if lowered.contains("business") || lowered.contains("team") { return "Business" }
+        return plan.split(separator: "_").map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined(separator: " ")
     }
-    public func isStale(at date: Date) -> Bool { date.timeIntervalSince(observedAt) > 300 }
+    /// Session-log readings only change when Codex runs, so they show their recorded time instead of a refresh warning.
+    public func isStale(at date: Date) -> Bool { source != .sessionLog && date.timeIntervalSince(observedAt) > 300 }
     public var windows: [UsageWindow] { [limit?.primary, limit?.secondary].compactMap { $0 } }
     public var preferredWindow: UsageWindow? { windows.first { $0.windowDurationMins == 10080 } ?? windows.first }
 

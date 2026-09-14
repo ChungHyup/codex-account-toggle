@@ -21,3 +21,7 @@ Only those two request methods can be constructed. Response IDs and size are che
 - If strict no-write behavior cannot be established, leave live mode disconnected and describe the blocker. Do not claim that an allowlisted request alone makes the runtime side-effect-free.
 
 All tests use synthetic JSON responses. No real account query or switch was performed as part of this preparation.
+
+## Local session-log path (implemented 2026-09-14)
+
+Live mode now displays the last `token_count.rate_limits` reading that Codex wrote to `CODEX_HOME/sessions`, following the reference project's approach. See `SessionUsage.swift` and [usage.md](usage.md) for the attribution rules. This does not connect the reader above: it is file reading only, with no process launch, request, or credential access, so the token-refresh concern does not apply.

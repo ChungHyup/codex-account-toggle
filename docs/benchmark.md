@@ -26,6 +26,19 @@ Reference commit: `5f2a0352d33a26b479bbe614b9b80843f4c9cb16`. Reviewed README, p
 - [WeeklyUsageNormalizer.swift](https://github.com/liuzhao1225/codex-account-switcher/blob/5f2a0352d33a26b479bbe614b9b80843f4c9cb16/Sources/SwitcherCore/WeeklyUsageNormalizer.swift): identifies windows by duration, not primary/secondary position. Our implementation preserves service durations and does not guess missing windows.
 - [MenuBarPopover.swift](https://github.com/liuzhao1225/codex-account-switcher/blob/5f2a0352d33a26b479bbe614b9b80843f4c9cb16/Sources/CodexAccountSwitcher/MenuBarPopover.swift): account, management, settings, confirmation pages; inline dismissible errors.
 
+## Quota source review: ScWen7/CodexSwitch (2026-09-14)
+
+Reviewed commit `65469fc` of the MIT-licensed [ScWen7/CodexSwitch](https://github.com/ScWen7/CodexSwitch) (Go CLI) for how it obtains quota without touching credentials.
+
+| Reference behavior | Value | Decision for this app |
+| --- | --- | --- |
+| Reads `token_count.rate_limits` from `~/.codex/sessions/**/*.jsonl`; forbids `account/rateLimits/read`, `account/usage/read`, and `account/rateLimitResetCredit/consume` | A fresh reading can start or extend an idle account's window and can refresh tokens | Adopted as the only live source. |
+| Attributes readings to profiles through its own switch log, falling back to the active profile | Session logs carry no account identity | Adopted with stricter rules: app-driven switches are exact boundaries; sign-ins detected outside the app leave the interval unattributed. |
+| Persists observations under its own state directory | Keeps a value after Codex rotates logs | Adopted (`usage.json`, 0600). |
+| Optional passive observer of `account/rateLimits/updated` on a JSON-RPC stream | Notifications only; still needs a host process | Not adopted; no attachable read-only endpoint exists on the embedded desktop app-server. |
+
+Reference code was read, not copied; the Swift implementation is independent.
+
 ## License and originality
 
 Reference license: MIT, Copyright (c) 2026 liuzhao1225. Direct source reuse would require preserving that copyright and permission notice. This change implements the selected behavior independently; no reference code, logo, icon, marketing image, or product name is copied into the app. Links identify the source of the comparison. The reference image was inspected locally, not redistributed in our screenshots.
