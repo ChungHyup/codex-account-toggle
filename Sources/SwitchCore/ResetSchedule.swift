@@ -6,6 +6,8 @@ public struct ResetSchedule {
     public let timeLabel: String
     public let remainingLabel: String
     public let fullLabel: String
+    /// One short phrase with day and clock time, e.g. "9월 17일 오후 3:04 초기화" / "Resets Sep 17, 3:04 PM".
+    public let compactLabel: String
     public let needsRefresh: Bool
 
     public init(timestamp: Double?, now: Date, language: AppLanguage = .korean) {
@@ -16,6 +18,7 @@ public struct ResetSchedule {
             timeLabel = ""
             remainingLabel = ""
             fullLabel = english ? "Reset time is unavailable." : "초기화 시각을 확인하지 못했습니다."
+            compactLabel = dateLabel
             needsRefresh = false
             return
         }
@@ -28,13 +31,19 @@ public struct ResetSchedule {
         formatter.timeZone = calendar.timeZone
         formatter.dateFormat = calendar.component(.year, from: now) == calendar.component(.year, from: date) ? (english ? "MMM d" : "M월 d일") : (english ? "MMM d, yyyy" : "yyyy년 M월 d일")
         let day = formatter.string(from: date)
+        let relativeDay: String?
         if calendar.isDate(date, inSameDayAs: now) {
+            relativeDay = english ? "today" : "오늘"
             dateLabel = (english ? "Today · " : "오늘 · ") + day
         } else if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now), calendar.isDate(date, inSameDayAs: tomorrow) {
+            relativeDay = english ? "tomorrow" : "내일"
             dateLabel = (english ? "Tomorrow · " : "내일 · ") + day
-        } else { dateLabel = day }
+        } else { relativeDay = nil; dateLabel = day }
         formatter.dateFormat = english ? "h:mm a" : "a h:mm"
-        timeLabel = (english ? "Resets " : "") + formatter.string(from: date) + (english ? "" : " 초기화")
+        let clock = formatter.string(from: date)
+        timeLabel = (english ? "Resets " : "") + clock + (english ? "" : " 초기화")
+        compactLabel = english ? "Resets " + (relativeDay ?? day) + (relativeDay == nil ? ", " : " ") + clock
+                               : (relativeDay ?? day) + " " + clock + " 초기화"
         formatter.dateFormat = english ? "EEEE, MMM d, yyyy h:mm:ss a" : "yyyy년 M월 d일 (EEEE) a h:mm:ss"
         fullLabel = formatter.string(from: date) + (english ? " · Korea time (KST)" : " · 한국 시간 (KST)")
         needsRefresh = date <= now

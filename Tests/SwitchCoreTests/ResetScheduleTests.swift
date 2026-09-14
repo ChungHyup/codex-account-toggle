@@ -2,6 +2,16 @@ import XCTest
 @testable import SwitchCore
 
 final class ResetScheduleTests: XCTestCase {
+    func testCompactLabelCarriesDayAndClock() {
+        let reset = ISO8601DateFormatter().date(from: "2026-09-17T06:04:00Z")! // 15:04 KST
+        let far = reset.addingTimeInterval(-3 * 86400)
+        XCTAssertEqual(ResetSchedule(timestamp: reset.timeIntervalSince1970, now: far, language: .korean).compactLabel, "9월 17일 오후 3:04 초기화")
+        XCTAssertEqual(ResetSchedule(timestamp: reset.timeIntervalSince1970, now: far, language: .english).compactLabel, "Resets Sep 17, 3:04 PM")
+        let sameDay = reset.addingTimeInterval(-3600)
+        XCTAssertEqual(ResetSchedule(timestamp: reset.timeIntervalSince1970, now: sameDay, language: .korean).compactLabel, "오늘 오후 3:04 초기화")
+        XCTAssertEqual(ResetSchedule(timestamp: reset.timeIntervalSince1970, now: sameDay, language: .english).compactLabel, "Resets today 3:04 PM")
+        XCTAssertEqual(ResetSchedule(timestamp: nil, now: far, language: .english).compactLabel, "Reset date unavailable")
+    }
     func date(_ value: String) -> Date { ISO8601DateFormatter().date(from: value)! }
     func testTodayUsesKoreanTimeAndExactClock() {
         let value = ResetSchedule(timestamp: date("2026-09-10T14:30:00Z").timeIntervalSince1970, now: date("2026-09-10T12:10:00Z"))

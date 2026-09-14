@@ -63,6 +63,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             NSApp.terminate(nil)
             return
         }
+        if CommandLine.arguments.contains("--usage-check") {
+            // Diagnostic: run the same live read the panel uses and print a token-free summary.
+            guard !model.isDemo else { print("usage-check requires --live"); NSApp.terminate(nil); return }
+            Task { @MainActor in
+                model.refreshLiveUsage(force: true)
+                for _ in 0..<60 where model.liveUsage.isLoading || model.usage[model.current ?? ""]?.source != .live && model.liveUsageError == nil {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                }
+                let current = model.current ?? "-"
+                let snapshot = model.usage[current]
+                print("current profile:", current.prefix(8), "| saved profiles:", model.profiles.count)
+                print("live error:", model.liveUsageError ?? "none")
+                print("source:", snapshot.map { "\($0.source)" } ?? "none", "| plan:", snapshot?.plan ?? "nil", "| label:", snapshot?.planLabel ?? "nil")
+                for window in snapshot?.windows ?? [] {
+                    print("window:", window.title, "| used:", window.usedPercent ?? -1, "| resets_at:", window.resetsAt ?? -1)
+                }
+                NSApp.terminate(nil)
+            }
+            return
+        }
         // A previous-name instance may still be open; never terminate or run alongside it.
         let peers = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "com.chunghyup.codex-account-toggle")
         let legacyPeers = NSRunningApplication.runningApplications(withBundleIdentifier: "local.codexswitch.menubar")

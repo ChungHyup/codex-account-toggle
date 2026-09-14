@@ -85,7 +85,7 @@ final class SessionUsageTests: XCTestCase {
         XCTAssertEqual(usage[a.id]?.source, .sessionLog)
         XCTAssertFalse(usage[a.id]!.isDemo)
         XCTAssertFalse(usage[a.id]!.isStale(at: Date()))
-        XCTAssertEqual(usage[a.id]?.planLabel, "Business")
+        XCTAssertEqual(usage[a.id]?.planLabel, "Business 5x")
         XCTAssertEqual((try FileManager.default.attributesOfItem(atPath: store.root.appendingPathComponent("usage.json").path)[.posixPermissions] as? NSNumber)?.intValue, 0o600)
         try FileManager.default.removeItem(at: first)
         usage = SessionUsage.collect(store: store, profileIDs: [a.id, b.id])
@@ -107,9 +107,13 @@ final class SessionUsageTests: XCTestCase {
     }
     func testPlanLabelHumanizesServicePlans() {
         func label(_ plan: String) -> String { UsageSnapshot(profileID: "x", plan: plan, limit: nil, observedAt: Date(), source: .sessionLog).planLabel }
-        XCTAssertEqual(label("self_serve_business_prolite"), "Business")
+        XCTAssertEqual(label("prolite"), "Pro 5x")
+        XCTAssertEqual(label("pro"), "Pro 20x")
         XCTAssertEqual(label("plus"), "Plus")
-        XCTAssertEqual(label("prolite"), "Prolite")
-        XCTAssertEqual(label("enterprise_x"), "Enterprise")
+        XCTAssertEqual(label("self_serve_business_prolite"), "Business 5x")
+        XCTAssertEqual(label("ent26"), "Enterprise")
+        XCTAssertEqual(label("enterprise_cbp_usage_based"), "Enterprise")
+        XCTAssertEqual(label("edu_pro"), "Edu Pro")
+        XCTAssertEqual(label("unknown"), L10n.text("요금제 미확인"))
     }
 }

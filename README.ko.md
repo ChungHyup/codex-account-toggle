@@ -42,7 +42,7 @@ open "$HOME/Applications/Codex Account Toggle.app"
 
 하단 데모 설정에서 정상 전환, 종료 거부, 재실행 실패 후 복구를 선택할 수 있습니다. 계정 이름은 각 계정의 `···` 메뉴로 바꿉니다. 데모에는 실제 로그인 저장·가져오기 기능을 노출하지 않습니다. `--window` 실행 인수는 데모 패널을 별도 창으로 엽니다.
 
-`--render-preview`는 같은 SwiftUI 화면을 `dist/demo-preview.png`에 렌더링하고 종료합니다. 실제 앱 제어 및 실계정 접근을 수행하지 않습니다.
+`--render-preview`는 같은 SwiftUI 화면을 `dist/demo-preview.png`에 렌더링하고 종료합니다. `--live --usage-check`는 패널을 열지 않고 실시간 조회 결과(요금제·창·오류, 토큰 제외)를 출력하고 종료합니다. 실제 앱 제어 및 실계정 접근을 수행하지 않습니다.
 
 ## 실사용 기능 (개발 중 테스트 금지)
 

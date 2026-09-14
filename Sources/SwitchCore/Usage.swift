@@ -75,18 +75,27 @@ public struct UsageSnapshot {
         let limit = payload.rateLimitsByLimitId.map { $0["codex"] } ?? payload.rateLimits
         return UsageSnapshot(profileID: profileID, plan: plan ?? limit?.planType, limit: limit, observedAt: observedAt, source: source)
     }
+    /// Labels follow the Codex desktop app's own plan names ("prolite" is Pro 5x, "pro" is Pro 20x).
     public var planLabel: String {
         guard let plan, !plan.isEmpty else { return L10n.text("요금제 미확인") }
         let lowered = plan.lowercased()
         switch lowered {
-        case "plus": return "Plus"
-        case "pro": return "Pro"
         case "free": return "Free"
-        case "business", "team": return "Business"
-        case "enterprise": return "Enterprise"
+        case "go": return "Go"
+        case "plus": return "Plus"
+        case "prolite": return "Pro 5x"
+        case "pro": return "Pro 20x"
+        case "team": return "Team"
+        case "business": return "Business"
+        case "self_serve_business_prolite": return "Business 5x"
+        case "self_serve_business_usage_based": return "Business"
+        case "edu": return "Edu"
+        case "edu_plus": return "Edu Plus"
+        case "edu_pro": return "Edu Pro"
+        case "unknown": return L10n.text("요금제 미확인")
         default: break
         }
-        if lowered.contains("enterprise") { return "Enterprise" }
+        if lowered.contains("enterprise") || lowered.hasPrefix("ent") { return "Enterprise" }
         if lowered.contains("business") || lowered.contains("team") { return "Business" }
         return plan.split(separator: "_").map { $0.prefix(1).uppercased() + $0.dropFirst() }.joined(separator: " ")
     }

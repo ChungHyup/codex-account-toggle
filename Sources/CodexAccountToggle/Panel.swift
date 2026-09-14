@@ -82,7 +82,7 @@ struct Panel: View {
         let warning = schedule.needsRefresh && window != nil
         return VStack(alignment: .leading, spacing: 3) {
             titleLine(profile, usage: usage, remaining: remaining)
-            detailLine(profile, text: detail.text, help: detail.help, warning: warning)
+            detailLine(left: detail.left, right: detail.right, help: detail.help, warning: warning)
             if window != nil { quotaBar(remaining) }
         }
         .padding(.horizontal, 10).padding(.vertical, 8)
@@ -101,12 +101,12 @@ struct Panel: View {
             percentLabel(usage: usage, remaining: remaining, size: 14)
         }
     }
-    private func detailLine(_ profile: Profile, text: String, help: String, warning: Bool) -> some View {
+    private func detailLine(left: String, right: String, help: String, warning: Bool) -> some View {
         HStack(spacing: 6) {
-            Text(profile.email).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+            Text(left).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
             Spacer(minLength: 6)
-            Text(text).font(.system(size: 10)).lineLimit(1).foregroundStyle(warning ? Palette.warning : Color.secondary).help(help)
-        }
+            Text(right).font(.system(size: 10)).lineLimit(1).fixedSize().foregroundStyle(warning ? Palette.warning : Color.secondary)
+        }.help(help)
     }
     private func quotaBar(_ remaining: Double?) -> some View {
         GeometryReader { geometry in
@@ -122,6 +122,7 @@ struct Panel: View {
     private func otherRow(_ profile: Profile) -> some View {
         let usage = model.usage[profile.id]
         let window = usage.flatMap { orderedWindows($0).first }
+        let schedule = ResetSchedule(timestamp: window?.resetsAt, now: Date(), language: L10n.language)
         let remaining: Double? = window.flatMap { $0.resetPassed(at: Date()) ? nil : $0.remainingPercent }
         return Button { model.switchTo(profile) } label: {
             HStack(spacing: 7) {
@@ -129,6 +130,9 @@ struct Panel: View {
                 Text(profile.name).font(.system(size: 11.5, weight: .medium)).foregroundStyle(.primary).lineLimit(1).truncationMode(.middle)
                 planBadge(profile)
                 Spacer(minLength: 6)
+                if window != nil, !schedule.remainingLabel.isEmpty, !schedule.needsRefresh {
+                    Text(schedule.remainingLabel).font(.system(size: 9.5)).foregroundStyle(.secondary).fixedSize().help(schedule.compactLabel)
+                }
                 percentLabel(usage: usage, remaining: remaining, size: 11.5)
                 Image(systemName: "arrow.left.arrow.right").font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
             }.padding(.horizontal, 10).frame(height: PanelLayout.rowHeight).contentShape(Rectangle())
@@ -174,14 +178,11 @@ struct Panel: View {
         case .live: return usage.isStale(at: Date()) ? "~" : nil
         }
     }
-    private func detailLabel(usage: UsageSnapshot?, window: UsageWindow?, schedule: ResetSchedule) -> (text: String, help: String) {
-        if let window {
-            let when = schedule.remainingLabel.isEmpty ? schedule.dateLabel : schedule.remainingLabel
-            return (window.title + " · " + when, schedule.fullLabel)
-        }
-        if model.isDemo { return (L10n.text("사용량 미확인"), L10n.text("사용량 미확인 · 실시간 조회 연결 전")) }
+    private func detailLabel(usage: UsageSnapshot?, window: UsageWindow?, schedule: ResetSchedule) -> (left: String, right: String, help: String) {
+        if let window { return (window.title + " · " + schedule.compactLabel, schedule.remainingLabel, schedule.fullLabel) }
+        if model.isDemo { return (L10n.text("사용량 미확인"), "", L10n.text("사용량 미확인 · 실시간 조회 연결 전")) }
         let text = model.liveUsageError ?? L10n.text("사용량 기록 없음 · Codex를 사용하면 표시됩니다")
-        return (text, text)
+        return (text, "", text)
     }
     private func usageCaption(_ usage: UsageSnapshot) -> String {
         if productPreview { return L10n.text("한국 시간 (KST)") }
