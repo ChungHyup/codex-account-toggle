@@ -20,7 +20,7 @@ for name in filter(None, names):
     path = root / name
     if name.startswith(('.build/', 'dist/')) or path.name == 'auth.json' or path.name.endswith('.auth.json') or path.name.startswith('.env'):
         problems.append(f'Excluded data is tracked: {name}')
-    if not path.exists() or path.suffix in {'.png', '.jpg'}:
+    if not path.exists() or path.suffix in {'.png', '.jpg', '.icns'}:
         continue
     text = path.read_text(encoding='utf-8')
     if any(re.search(pattern, text) for pattern in patterns):

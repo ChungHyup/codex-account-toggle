@@ -42,6 +42,8 @@ swift test --disable-sandbox
 bash scripts/build-app.sh
 ```
 
+The bundle icon comes from `assets/AppIcon.icns`; regenerate it with `swift scripts/make-icon.swift` after changing the mark.
+
 To install for your macOS user, copy the built app into `~/Applications` (create the folder if necessary), or keep it in `dist`:
 
 ```sh
