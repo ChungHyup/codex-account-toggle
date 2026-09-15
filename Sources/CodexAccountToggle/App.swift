@@ -428,23 +428,25 @@ final class CodexLifecycle: AppLifecycle {
         if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.openai.codex") { return url }
         throw SwitchError(L10n.text("Codex 앱을 찾지 못했습니다. Codex 앱을 설치하거나 한 번 실행하세요."))
     }
-    func isRunning() throws -> Bool {
-        if NSRunningApplication.runningApplications(withBundleIdentifier: "com.openai.codex").contains(where: { !$0.isTerminated }) { return true }
+    private var appIsRunning: Bool {
+        NSRunningApplication.runningApplications(withBundleIdentifier: "com.openai.codex").contains { !$0.isTerminated }
+    }
+    private func codexProcesses() throws -> [CodexProcess] {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/ps")
-        // Inspect executable names only; never collect command arguments or tokens.
-        process.arguments = ["-axo", "comm="]
+        // Inspect pids and executable paths only; never collect command arguments or tokens.
+        process.arguments = ["-axo", "pid=,comm="]
         let pipe = Pipe(); process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice
         try process.run()
         let bytes = pipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         guard process.terminationStatus == 0 else { throw SwitchError(L10n.text("Codex 프로세스 확인에 실패했습니다.")) }
-        return String(decoding: bytes, as: UTF8.self).split(separator: "\n").contains {
-            let path = String($0).trimmingCharacters(in: .whitespaces)
-            let name = URL(fileURLWithPath: path).lastPathComponent.lowercased()
-            return name == "codex" || name.hasPrefix("codex-") || name.hasPrefix("codex (")
-        }
+        return ProcessScan.codexProcesses(in: String(decoding: bytes, as: UTF8.self))
+    }
+    func isRunning() throws -> Bool {
+        if appIsRunning { return true }
+        return try !codexProcesses().isEmpty
     }
     func quit() async throws {
         for app in NSRunningApplication.runningApplications(withBundleIdentifier: "com.openai.codex") {
@@ -452,9 +454,32 @@ final class CodexLifecycle: AppLifecycle {
         }
         for _ in 0..<60 {
             if try !isRunning() { return }
+            // The desktop app is gone but left helpers behind: offer to clean up only those.
+            if !appIsRunning, let orphans = ProcessScan.orphans(try codexProcesses(), insideBundle: try codexURL().path) {
+                try await clean(orphans)
+                return
+            }
             try await Task.sleep(nanoseconds: 500_000_000)
         }
         throw SwitchError(L10n.text("Codex 또는 CLI가 아직 실행 중입니다. 작업을 종료한 뒤 다시 시도하세요. 로그인은 변경하지 않았습니다."))
+    }
+    /// Terminates leftover processes from the quit desktop app after the user agrees. CLI sessions are never here.
+    private func clean(_ orphans: [CodexProcess]) async throws {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L10n.format("Codex 앱은 종료됐지만 백그라운드 프로세스 %@개가 남아 있습니다", String(orphans.count))
+        alert.informativeText = L10n.text("모두 Codex 앱 안의 프로세스입니다. 정리해야 계정을 바꿀 수 있습니다. 터미널의 CLI 세션은 건드리지 않습니다.")
+        alert.addButton(withTitle: L10n.text("취소"))
+        alert.addButton(withTitle: L10n.text("정리하고 계속"))
+        guard alert.runModal() == .alertSecondButtonReturn else {
+            throw SwitchError(L10n.text("전환을 취소했습니다. 로그인은 변경하지 않았습니다."))
+        }
+        for process in orphans { kill(process.pid, SIGTERM) }
+        for _ in 0..<20 {
+            if try !isRunning() { return }
+            try await Task.sleep(nanoseconds: 500_000_000)
+        }
+        throw SwitchError(L10n.text("남은 프로세스를 정리하지 못했습니다. 로그인은 변경하지 않았습니다."))
     }
     func launch() async throws {
         let url = try codexURL()

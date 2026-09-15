@@ -144,5 +144,10 @@
   "‘%@’ 저장본을 삭제할까요?": "Delete the saved copy of ‘%@’?",
   "앱에 저장된 로그인 사본과 사용량 기록만 삭제되며 Codex의 현재 로그인은 바뀌지 않습니다.": "Only this app's saved sign-in copy and usage record are deleted; the current Codex sign-in does not change.",
   "삭제": "Delete",
-  "저장된 계정을 삭제했습니다.": "Deleted the saved account."
+  "저장된 계정을 삭제했습니다.": "Deleted the saved account.",
+  "Codex 앱은 종료됐지만 백그라운드 프로세스 %@개가 남아 있습니다": "Codex quit, but %@ background processes remain",
+  "모두 Codex 앱 안의 프로세스입니다. 정리해야 계정을 바꿀 수 있습니다. 터미널의 CLI 세션은 건드리지 않습니다.": "All of them belong to the Codex app bundle. They must be cleaned up before the account can change. CLI sessions in a terminal are never touched.",
+  "정리하고 계속": "Clean up and continue",
+  "전환을 취소했습니다. 로그인은 변경하지 않았습니다.": "Switch cancelled. Your sign-in was not changed.",
+  "남은 프로세스를 정리하지 못했습니다. 로그인은 변경하지 않았습니다.": "Leftover processes could not be cleaned up. Your sign-in was not changed."
 }

@@ -5,6 +5,11 @@
 - First universal macOS DMG prerelease with original toggle logo and bilingual product README.
 - Release review: conservative history attribution, safe profile deletion, duration validation, isolated previews, and explicit temporary credential storage.
 
+## Unreleased
+
+- When the Codex desktop app has quit but left helper processes behind (all inside its own bundle), the switch now offers to clean them up instead of waiting; CLI sessions outside the bundle still block the switch.
+- README: per-OS steps for approving the unnotarized beta on first launch.
+
 ## Development history
 
 - Larger panel type (300 points wide): names 13–14 pt, details 11–11.5 pt, percentages 14–16 pt. Waiting accounts use two lines so long names stay readable. Success confirmations no longer appear; only progress, sign-in, recovery, and errors are shown.
