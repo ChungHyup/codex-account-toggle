@@ -35,7 +35,19 @@
 2. DMG를 열어 **Codex Account Toggle**을 **Applications**로 드래그합니다.
 3. 앱을 열고 메뉴바의 순환 화살표 아이콘을 누릅니다.
 
-**이번 버전은 ad-hoc 서명된 베타이며 개발자 서명·공증은 아직 없습니다.** macOS에서 다운로드 앱 실행을 차단할 수 있습니다. 조직의 정상적인 허용 절차로 실행할 수 없다면 소스에서 직접 빌드하세요. 자동 업데이트는 없습니다. 저장소 공개 전까지 릴리즈 다운로드에는 GitHub 접근 권한이 필요합니다.
+**이번 버전은 ad-hoc 서명된 베타이며 개발자 서명·공증은 아직 없습니다.** 처음 열 때 macOS가 차단하며, 아래처럼 시스템 설정에서 한 번만 허용하면 됩니다. 조직 정책상 허용할 수 없다면 소스에서 직접 빌드하세요. 자동 업데이트는 없습니다.
+
+### 처음 열 때 차단되면
+
+이 앱 하나만 허용하는 절차이며 시스템 보안 설정을 전체적으로 낮추지 않습니다.
+
+- **macOS 15(Sequoia) 이상:** 앱을 한 번 열어 "확인할 수 없음" 대화상자를 닫은 뒤 **시스템 설정 → 개인정보 보호 및 보안**으로 가서 아래쪽 보안 항목의 Codex Account Toggle 옆 **그래도 열기**를 누르고 확인합니다.
+- **macOS 13~14:** 응용 프로그램 폴더에서 앱을 Control-클릭 → **열기** → 대화상자에서 **열기**.
+- **터미널로 처리하려면** 이 앱의 다운로드 격리 플래그만 제거합니다.
+
+```sh
+xattr -d com.apple.quarantine "/Applications/Codex Account Toggle.app"
+```
 
 **macOS 13 이상**, 실제 계정 전환에는 설치된 **Codex 데스크톱 앱**이 필요합니다. DMG는 Apple Silicon·Intel universal이며 Intel 빌드는 검증했지만 Intel 실기기 QA는 남아 있습니다.
 
@@ -69,7 +81,7 @@ bash scripts/build-app.sh
 open 'dist/Codex Account Toggle.app'
 ```
 
-비공개 상태에서는 GitHub 인증 후 복제하거나 `gh repo clone ChungHyup/codex-account-toggle`을 사용하세요. 전체 Xcode가 설치된 환경에서 universal DMG를 만들려면:
+전체 Xcode가 설치된 환경에서 universal DMG를 만들려면:
 
 ```sh
 UNIVERSAL=1 bash scripts/build-app.sh

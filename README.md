@@ -37,7 +37,19 @@ A small, native menu-bar app for people who use more than one Codex account. Kee
 2. Open the DMG and drag **Codex Account Toggle** to **Applications**.
 3. Open the app and click the circular-arrows icon in your menu bar.
 
-**This is a beta, locally ad-hoc signed and not notarized.** macOS may block the downloaded app. If you cannot approve it through your organization's normal policy, build from source instead. There is no automatic updater yet. Private repository releases require GitHub access until the owner makes the project public.
+**This is a beta, locally ad-hoc signed and not notarized.** macOS blocks it on first launch; approving it takes one trip to System Settings (below). If your organization's policy does not allow that, build from source instead. There is no automatic updater yet.
+
+### If macOS blocks the app
+
+This approves only this app; it does not lower system security in general.
+
+- **macOS 15 (Sequoia) and later:** open the app once and dismiss the "Apple could not verify" dialog, then open **System Settings → Privacy & Security**, scroll to the security section, click **Open Anyway** next to Codex Account Toggle, and confirm.
+- **macOS 13–14:** Control-click the app in Applications, choose **Open**, then click **Open** in the dialog.
+- **Terminal alternative:** remove the download quarantine flag from this app only:
+
+```sh
+xattr -d com.apple.quarantine "/Applications/Codex Account Toggle.app"
+```
 
 Requires **macOS 13+** and an installed **Codex desktop app** for real account switching. The DMG includes both Apple Silicon and Intel code; Intel compilation is verified, but Intel hardware QA is still pending.
 
@@ -71,7 +83,7 @@ bash scripts/build-app.sh
 open 'dist/Codex Account Toggle.app'
 ```
 
-For a private repository, authenticate first or use `gh repo clone ChungHyup/codex-account-toggle`. To build a universal DMG with full Xcode installed:
+To build a universal DMG with full Xcode installed:
 
 ```sh
 UNIVERSAL=1 bash scripts/build-app.sh

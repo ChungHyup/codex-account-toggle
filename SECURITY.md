@@ -1,6 +1,6 @@
 # Security and privacy
 
-This is an experimental local utility, not an official OpenAI product. Real account switching and live usage integration have not been validated end to end. Default launches use synthetic demo accounts.
+This is an experimental local utility, not an official OpenAI product. Real account switching and the live usage read were validated by the project owner on their own accounts with the Codex desktop app; there is no independent security certification. Fresh installs use synthetic demo accounts.
 
 In experimental live mode, credential snapshots are **plaintext**, restricted to the current user with directory mode 0700 and file mode 0600. This is not encryption or Keychain storage. The utility has no telemetry or network client of its own. In live mode it starts a short-lived `codex app-server` process to read the signed-in account's usage; that process contacts OpenAI and may refresh that account's tokens in `auth.json`, as Codex normally does. Its stderr is discarded and its replies are size- and identity-checked before display.
 
@@ -10,4 +10,4 @@ Before publication, enable private vulnerability reporting and secret scanning w
 
 ## 한국어
 
-실계정 인증 사본은 암호화가 아닌 파일 권한으로 보호합니다. 실제 전환은 아직 통합 검증 전입니다. 실시간 사용량은 로그인 계정에 한해 Codex의 `app-server` 프로세스를 잠깐 띄워 읽으며, 그 과정에서 Codex가 해당 계정의 토큰을 갱신할 수 있습니다. 인증정보·계정 식별자·세션 로그는 공개 이슈에 올리지 마세요. 저장소 공개 시 비공개 취약점 제보 기능을 활성화해야 합니다.
+실계정 인증 사본은 암호화가 아닌 파일 권한으로 보호합니다. 실제 전환은 소유자가 자신의 계정과 Codex 데스크톱 앱으로 검증했으며 독립적인 보안 인증은 없습니다. 실시간 사용량은 로그인 계정에 한해 Codex의 `app-server` 프로세스를 잠깐 띄워 읽으며, 그 과정에서 Codex가 해당 계정의 토큰을 갱신할 수 있습니다. 인증정보·계정 식별자·세션 로그는 공개 이슈에 올리지 마세요. 저장소 공개 시 비공개 취약점 제보 기능을 활성화해야 합니다.
