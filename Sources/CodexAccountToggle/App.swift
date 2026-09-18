@@ -190,7 +190,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let color: NSColor = blocked ? .systemRed : .systemOrange
         let symbol = blocked ? "exclamationmark.triangle.fill" : "dollarsign.circle.fill"
         let headline = credit.headline(burning: model.creditBurning)
-        creditImages = (tintedSymbol(symbol, color, headline), tintedSymbol(symbol, color.withAlphaComponent(0.3), headline))
+        let mark = tintedSymbol(symbol, color, headline)
+        creditImages = (mark, mark.map { faded($0, 0.3) })
         let value = model.menuUsageEnabled ? (credit.shortValue ?? "") : ""
         button.attributedTitle = NSAttributedString(string: value.isEmpty ? "" : " " + value,
                                                     attributes: [.foregroundColor: color, .font: NSFont.menuBarFont(ofSize: 0)])
@@ -204,11 +205,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         button.image = pulseDim ? creditImages.dim : creditImages.on
         if pulse { startPulse() }
     }
+    /// Colors only the symbol's opaque pixels, so the $ or ! stays a see-through knockout.
+    /// A single palette color would paint the glyph the same color as its disc and hide it.
     private func tintedSymbol(_ name: String, _ color: NSColor, _ label: String) -> NSImage? {
-        let image = NSImage(systemSymbolName: name, accessibilityDescription: label)?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [color]))
-        image?.isTemplate = false
+        guard let symbol = NSImage(systemSymbolName: name, accessibilityDescription: label) else { return nil }
+        let image = NSImage(size: symbol.size, flipped: false) { rect in
+            symbol.draw(in: rect)
+            color.set()
+            rect.fill(using: .sourceAtop)
+            return true
+        }
+        image.accessibilityDescription = label
+        image.isTemplate = false
         return image
+    }
+    private func faded(_ image: NSImage, _ alpha: CGFloat) -> NSImage {
+        let copy = NSImage(size: image.size, flipped: false) { rect in
+            image.draw(in: rect, from: .zero, operation: .sourceOver, fraction: alpha)
+            return true
+        }
+        copy.accessibilityDescription = image.accessibilityDescription
+        copy.isTemplate = false
+        return copy
     }
     private func startPulse() {
         guard pulseTimer == nil else { return }
