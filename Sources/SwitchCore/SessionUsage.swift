@@ -41,7 +41,20 @@ public enum SessionUsageReader {
         guard primary != nil || secondary != nil else { return nil }
         let plan = value(limits, "plan_type", "planType") as? String
         let observedAt = (record["timestamp"] as? String).flatMap(date(from:)) ?? fallbackDate
-        return SessionUsageObservation(observedAt: observedAt, plan: plan, limit: UsageLimit(planType: plan, primary: primary, secondary: secondary))
+        // Codex records credit state alongside the windows; keep it so credit mode survives local readings.
+        let credits = (value(limits, "credits") as? [String: Any]).map {
+            CreditsInfo(hasCredits: value($0, "has_credits", "hasCredits") as? Bool, unlimited: value($0, "unlimited") as? Bool,
+                        balance: numeric(value($0, "balance")))
+        }
+        let cap = (value(limits, "individual_limit", "individualLimit") as? [String: Any]).map {
+            SpendLimit(limit: numeric(value($0, "limit")), used: numeric(value($0, "used")),
+                       remainingPercent: numeric(value($0, "remaining_percent", "remainingPercent")),
+                       resetsAt: numeric(value($0, "resets_at", "resetsAt")))
+        }
+        let limit = UsageLimit(planType: plan, primary: primary, secondary: secondary, credits: credits, individualLimit: cap,
+                               rateLimitReachedType: value(limits, "rate_limit_reached_type", "rateLimitReachedType") as? String,
+                               spendControlReached: value(limits, "spend_control_reached", "spendControlReached") as? Bool)
+        return SessionUsageObservation(observedAt: observedAt, plan: plan, limit: limit)
     }
 
     /// The latest reading in each of the newest `maxFiles` rollouts. Reads the tail of each file first
@@ -93,6 +106,12 @@ public enum SessionUsageReader {
         return nil
     }
     private static func number(_ raw: Any?) -> Double? { (raw as? NSNumber)?.doubleValue }
+    /// Numbers that Codex may record as JSON strings ("1508.2").
+    private static func numeric(_ raw: Any?) -> Double? {
+        if let number = raw as? NSNumber, number.doubleValue.isFinite { return number.doubleValue }
+        if let text = raw as? String, let value = Double(text.trimmingCharacters(in: .whitespaces)), value.isFinite { return value }
+        return nil
+    }
     private static func date(from text: String) -> Date? {
         guard let parsed = fractional.date(from: text) ?? plain.date(from: text) else { return nil }
         return Date(timeIntervalSince1970: floor(parsed.timeIntervalSince1970))
@@ -134,6 +153,17 @@ public struct UsageAttributor {
 }
 
 public enum SessionUsage {
+    /// Combines fresh local-history readings with the live readings already shown. A live reading is
+    /// authoritative for its account while it is fresh; history replaces it only after it goes stale and
+    /// history is newer. Codex writes local readings during every turn, so "newer" alone is not enough.
+    public static func merge(history: [String: UsageSnapshot], shown: [String: UsageSnapshot], now: Date) -> [String: UsageSnapshot] {
+        var merged = history
+        for (id, snapshot) in shown where snapshot.source == .live {
+            if let local = merged[id], local.observedAt > snapshot.observedAt, snapshot.isStale(at: now) { continue }
+            merged[id] = snapshot
+        }
+        return merged
+    }
     /// Latest attributable reading per saved profile. Readings are cached in the profile directory
     /// so an inactive account keeps its last value after Codex rotates its logs.
     public static func collect(store: Store, profileIDs: [String], maxFiles: Int = 60) -> [String: UsageSnapshot] {

@@ -368,13 +368,7 @@ final class Model: ObservableObject {
             let result = SessionUsage.collect(store: Store(root: root, home: home), profileIDs: ids)
             await MainActor.run { [weak self] in
                 guard let self else { return }
-                var merged = result
-                // A live reading for an account outranks an older local record for it.
-                for (id, snapshot) in self.usage where snapshot.source == .live {
-                    if let local = merged[id], local.observedAt > snapshot.observedAt { continue }
-                    merged[id] = snapshot
-                }
-                self.usage = merged
+                self.usage = SessionUsage.merge(history: result, shown: self.usage, now: Date())
                 self.collectingUsage = false
             }
         }

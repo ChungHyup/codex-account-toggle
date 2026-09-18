@@ -55,6 +55,39 @@ final class SessionUsageTests: XCTestCase {
         XCTAssertEqual(limited.map { $0.limit.primary?.usedPercent }, [30])
         XCTAssertTrue(SessionUsageReader.scan(sessionsRoot: base.appendingPathComponent("missing")).isEmpty)
     }
+    func testCreditStateIsReadFromLocalRecords() throws {
+        let capped = #"{"timestamp":"2026-09-18T04:28:23.203Z","type":"event_msg","payload":{"type":"token_count","rate_limits":{"limit_id":"codex","primary":{"used_percent":100.0,"window_minutes":10080,"resets_at":1790064804},"secondary":null,"credits":{"has_credits":true,"unlimited":false,"balance":null},"individual_limit":{"limit":"2500","used":"1508.2","remaining_percent":40,"resets_at":1790812800},"spend_control_reached":null,"plan_type":"self_serve_business_prolite","rate_limit_reached_type":null}}}"#
+        let reading = try XCTUnwrap(SessionUsageReader.observation(from: Data(capped.utf8), fallbackDate: at(0)))
+        XCTAssertEqual(reading.limit.credits?.hasCredits, true)
+        XCTAssertNil(reading.limit.credits?.balance)
+        XCTAssertEqual(reading.limit.individualLimit?.remainingPercent, 40)
+        XCTAssertEqual(try XCTUnwrap(reading.limit.individualLimit?.used), 1508.2, accuracy: 0.001)
+        let snapshot = UsageSnapshot(profileID: "b", plan: reading.plan, limit: reading.limit, observedAt: reading.observedAt, source: .sessionLog)
+        XCTAssertEqual(snapshot.creditStatus(at: reading.observedAt)?.shortValue, "40%")
+        // As recorded today: credits available but no per-seat cap in the local record.
+        let uncapped = capped.replacingOccurrences(of: #"{"limit":"2500","used":"1508.2","remaining_percent":40,"resets_at":1790812800}"#, with: "null")
+        let plain = try XCTUnwrap(SessionUsageReader.observation(from: Data(uncapped.utf8), fallbackDate: at(0)))
+        let status = UsageSnapshot(profileID: "b", plan: plain.plan, limit: plain.limit, observedAt: plain.observedAt, source: .sessionLog).creditStatus(at: plain.observedAt)
+        XCTAssertEqual(status?.kind, .spending)
+        XCTAssertNil(status?.shortValue)
+        // Cached readings keep the credit state across launches.
+        let cached = try JSONDecoder().decode(SessionUsageObservation.self, from: JSONEncoder().encode(reading))
+        XCTAssertEqual(cached, reading)
+    }
+    func testFreshLiveReadingIsNotReplacedByNewerLocalHistory() {
+        let now = at(10_000)
+        func snap(_ id: String, _ time: TimeInterval, _ source: UsageSource) -> UsageSnapshot {
+            UsageSnapshot(profileID: id, plan: nil, limit: nil, observedAt: at(time), source: source)
+        }
+        let shown = ["a": snap("a", 9_900, .live), "b": snap("b", 9_000, .live), "c": snap("c", 9_900, .live), "d": snap("d", 9_900, .demo)]
+        let history = ["a": snap("a", 9_990, .sessionLog), "b": snap("b", 9_990, .sessionLog), "c": snap("c", 5_000, .sessionLog), "e": snap("e", 1, .sessionLog)]
+        let merged = SessionUsage.merge(history: history, shown: shown, now: now)
+        XCTAssertEqual(merged["a"]?.source, .live, "fresh live wins even though Codex wrote a newer local line")
+        XCTAssertEqual(merged["b"]?.source, .sessionLog, "stale live gives way to newer history")
+        XCTAssertEqual(merged["c"]?.source, .live, "older history never replaces live")
+        XCTAssertNil(merged["d"], "only live readings are carried over")
+        XCTAssertEqual(merged["e"]?.source, .sessionLog)
+    }
     func testInvalidDurationDoesNotCrash() {
         let line = Data(#"{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"primary":{"used_percent":5,"window_minutes":1e100}}}}"#.utf8)
         let value = SessionUsageReader.observation(from: line, fallbackDate: at(1))

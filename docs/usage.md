@@ -18,6 +18,7 @@ Updated 2026-09-18. The Codex bucket of `account/rateLimits/read` also carries `
 - **Spending now:** the limit's used amount rose, or the balance fell, between two reads of the same account. The first read, an unchanged value, a monthly reset, and leaving credit mode all clear it. While in credit mode the signed-in account is read every minute.
 - **Menu bar:** an orange dollar mark with the value. The mark blinks every 0.6 seconds only while credits are being spent, and never when Reduce Motion is on. Blocked usage shows a red warning mark.
 - The official ChatGPT app shows credits only as counts. Showing a business seat as a percentage is the owner's choice; tooltips add the exact used/limit counts and reset time.
+- Local records carry `credits`, `individual_limit`, and the block fields too, and are parsed the same way. A fresh live reading (under five minutes) is never replaced by local history, because Codex writes a newer local line on every turn.
 - Inactive accounts are not queried, so credit state follows the signed-in account. A row keeps its last live credit value after a switch.
 
 ## Local history
