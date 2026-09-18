@@ -31,10 +31,22 @@ public struct UsageLimit: Codable, Equatable {
     public let planType: String?
     public let primary: UsageWindow?
     public let secondary: UsageWindow?
-    public init(planType: String?, primary: UsageWindow?, secondary: UsageWindow?) {
+    /// Credits that keep Codex usable after the plan limit.
+    public let credits: CreditsInfo?
+    /// Monthly credit cap for a workspace seat.
+    public let individualLimit: SpendLimit?
+    /// Set only while usage is blocked, for example when credits are depleted.
+    public let rateLimitReachedType: String?
+    public let spendControlReached: Bool?
+    public init(planType: String?, primary: UsageWindow?, secondary: UsageWindow?, credits: CreditsInfo? = nil,
+                individualLimit: SpendLimit? = nil, rateLimitReachedType: String? = nil, spendControlReached: Bool? = nil) {
         self.planType = planType
         self.primary = primary
         self.secondary = secondary
+        self.credits = credits
+        self.individualLimit = individualLimit
+        self.rateLimitReachedType = rateLimitReachedType
+        self.spendControlReached = spendControlReached
     }
 }
 
