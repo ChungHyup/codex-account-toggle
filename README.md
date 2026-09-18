@@ -28,6 +28,7 @@ A small, native menu-bar app for people who use more than one Codex account. Kee
 - **Add another account without logging out.** Browser sign-in runs in a temporary Codex home, then saves the new account locally.
 - **Switch with a clear confirmation.** See which account you chose and whether Codex needs to restart. Cancel is the default.
 - **See quota before you switch.** The signed-in account gets a live reading. Inactive accounts show a last known local reading when it can be attributed; missing values stay unknown.
+- **Know when you are paying.** When the weekly allowance runs out and Codex keeps going on credits, the menu bar turns into an orange $ with the remaining share of a business seat's monthly credit limit, or a personal balance such as 2.8K. It blinks while credits are actually being spent and turns red if usage is blocked.
 - **Make the menu yours.** Rename or remove saved accounts, show quota in the menu bar, and choose English or Korean. Light and dark appearance follow macOS.
 - **Keep control of your data.** No app-operated cloud sync or analytics. Authentication is handled by Codex; saved sign-in copies stay on your Mac.
 

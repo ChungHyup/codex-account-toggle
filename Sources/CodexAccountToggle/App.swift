@@ -17,6 +17,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     var previewWindow: NSWindow?
     private var subscriptions = Set<AnyCancellable>()
     private var outsideClickMonitor: Any?
+    private var pulseTimer: Timer?
+    private var pulseDim = false
+    private var creditImages: (on: NSImage?, dim: NSImage?) = (nil, nil)
     func applicationDidFinishLaunching(_ notification: Notification) {
         if CommandLine.arguments.contains("--render-preview") {
             guard model.isDemo else { NSApp.terminate(nil); return }
@@ -47,6 +50,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             NSApp.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
             let productPreview = CommandLine.arguments.contains("--product-preview")
             let expanded = !productPreview && CommandLine.arguments.contains("--settings-preview")
+            let creditPreview = CommandLine.arguments.contains("--credit-preview")
+            if creditPreview { model.applyCreditPreview() }
+            let outputName: String
+            if creditPreview { outputName = "dist/credit-preview\(dark ? "-dark" : "")\(languageSuffix).png" }
+            else if blocked { outputName = "dist/quit-blocked\(languageSuffix).png" }
+            else if productPreview { outputName = "dist/product-preview\(dark ? "-dark" : "")\(languageSuffix).png" }
+            else if dark { outputName = "dist/demo-preview-dark\(languageSuffix).png" }
+            else if state { outputName = "dist/demo-preview-error\(languageSuffix).png" }
+            else if expanded { outputName = "dist/demo-preview-settings\(languageSuffix).png" }
+            else { outputName = "dist/demo-preview\(languageSuffix).png" }
             let hosting = NSHostingView(rootView: Panel(model: model, expanded: expanded, productPreview: productPreview).background(Color(nsColor: .windowBackgroundColor)))
             // The panel sizes itself to its content; render exactly that.
             let size = hosting.fittingSize
@@ -57,7 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             if let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) {
                 hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
                 if let png = bitmap.representation(using: .png, properties: [:]) {
-                try? png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(blocked ? "dist/quit-blocked\(languageSuffix).png" : productPreview ? "dist/product-preview\(dark ? "-dark" : "")\(languageSuffix).png" : dark ? "dist/demo-preview-dark\(languageSuffix).png" : state ? "dist/demo-preview-error\(languageSuffix).png" : expanded ? "dist/demo-preview-settings\(languageSuffix).png" : "dist/demo-preview\(languageSuffix).png"))
+                try? png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(outputName))
                 }
             }
             NSApp.terminate(nil)
@@ -79,6 +92,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 for window in snapshot?.windows ?? [] {
                     print("window:", window.title, "| used:", window.usedPercent ?? -1, "| resets_at:", window.resetsAt ?? -1)
                 }
+                if let credit = snapshot?.creditStatus() {
+                    let kind = credit.kind == .blocked ? "blocked" : "spending"
+                    let used = credit.capUsed.map { CreditFormat.grouped($0) } ?? "-"
+                    let cap = credit.capLimit.map { CreditFormat.grouped($0) } ?? "-"
+                    let balance = credit.balance.map { CreditFormat.grouped($0) } ?? "-"
+                    print("credit:", kind, "| menu value:", credit.shortValue ?? "-", "| cap used:", used, "/", cap, "| balance:", balance)
+                    print("panel:", credit.headline(burning: false), "|", credit.detail(now: Date()) ?? "-")
+                } else {
+                    let has = snapshot?.limit?.credits?.hasCredits.map { String($0) } ?? "nil"
+                    print("credit: not in credit mode | hasCredits:", has)
+                }
                 NSApp.terminate(nil)
             }
             return
@@ -92,8 +116,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         item.button?.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Account Toggle")
         item.button?.target = self
         item.button?.action = #selector(toggle)
-        model.$usage.combineLatest(model.$current, model.$menuUsageEnabled)
-            .receive(on: RunLoop.main).sink { [weak self] _, _, _ in self?.updateMenuTitle() }.store(in: &subscriptions)
+        model.$usage.combineLatest(model.$current, model.$menuUsageEnabled, model.$creditBurning)
+            .receive(on: RunLoop.main).sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
+        // While credits are in use, read the signed-in account every minute so spending shows up quickly.
+        Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+            .sink { [weak self] _ in
+                guard let self, self.model.currentCreditStatus?.kind == .spending else { return }
+                self.model.refreshLiveUsage(force: true)
+            }.store(in: &subscriptions)
         Timer.publish(every: 30, on: .main, in: .common).autoconnect()
             .sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
         // Live mode: local session records for saved accounts plus an owner-authorized live read for the signed-in one.
@@ -135,15 +165,68 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         outsideClickMonitor = nil
     }
     private func updateMenuTitle() {
-        guard model.menuUsageEnabled else { item.button?.title = ""; return }
+        guard let button = item.button else { return }
         let snapshot = model.current.flatMap { model.usage[$0] }
+        if let snapshot, let credit = snapshot.creditStatus() {
+            showCredit(credit, snapshot: snapshot, on: button)
+            return
+        }
+        stopPulse()
+        button.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Account Toggle")
+        guard model.menuUsageEnabled else { button.title = ""; return }
         let window = snapshot?.preferredWindow
         let remaining = window?.resetPassed(at: Date()) == true ? nil : window?.remainingPercent
         let value = remaining.map { "\(Int($0.rounded(.down)))%" } ?? "—"
         let stale = snapshot?.isStale(at: Date()) == true ? "~" : ""
-        item.button?.title = " " + (model.isDemo ? "D " : "") + stale + value
+        button.title = " " + (model.isDemo ? "D " : "") + stale + value
         let prefix = snapshot?.source == .sessionLog ? L10n.text("기록 · ") : model.isDemo ? L10n.text("샘플 · ") : ""
-        item.button?.toolTip = prefix + (window?.title ?? L10n.text("사용 한도")) + " · " + value + L10n.text(" 남음")
+        button.toolTip = prefix + (window?.title ?? L10n.text("사용 한도")) + " · " + value + L10n.text(" 남음")
+    }
+    /// Credit mode: an orange dollar mark with the remaining cap share (business) or the balance
+    /// (personal). The mark blinks only while credits are actually going down, and never when the
+    /// system asks to reduce motion. Blocked usage shows a red warning mark instead.
+    private func showCredit(_ credit: CreditStatus, snapshot: UsageSnapshot, on button: NSStatusBarButton) {
+        let blocked = credit.kind == .blocked
+        let color: NSColor = blocked ? .systemRed : .systemOrange
+        let symbol = blocked ? "exclamationmark.triangle.fill" : "dollarsign.circle.fill"
+        let headline = credit.headline(burning: model.creditBurning)
+        creditImages = (tintedSymbol(symbol, color, headline), tintedSymbol(symbol, color.withAlphaComponent(0.3), headline))
+        let value = model.menuUsageEnabled ? (credit.shortValue ?? "") : ""
+        button.attributedTitle = NSAttributedString(string: value.isEmpty ? "" : " " + value,
+                                                    attributes: [.foregroundColor: color, .font: NSFont.menuBarFont(ofSize: 0)])
+        var tip = credit.fullDescription(now: Date(), burning: model.creditBurning)
+        if !blocked, let window = snapshot.preferredWindow {
+            tip += "\n" + window.title + " · " + ResetSchedule(timestamp: window.resetsAt, now: Date(), language: L10n.language).compactLabel
+        }
+        button.toolTip = tip
+        let pulse = !blocked && model.creditBurning && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        if !pulse { stopPulse() }
+        button.image = pulseDim ? creditImages.dim : creditImages.on
+        if pulse { startPulse() }
+    }
+    private func tintedSymbol(_ name: String, _ color: NSColor, _ label: String) -> NSImage? {
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: label)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [color]))
+        image?.isTemplate = false
+        return image
+    }
+    private func startPulse() {
+        guard pulseTimer == nil else { return }
+        let timer = Timer(timeInterval: 0.6, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in self.pulseTick() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        pulseTimer = timer
+    }
+    private func stopPulse() {
+        pulseTimer?.invalidate()
+        pulseTimer = nil
+        pulseDim = false
+    }
+    private func pulseTick() {
+        pulseDim.toggle()
+        item.button?.image = pulseDim ? creditImages.dim : creditImages.on
     }
 }
 
@@ -160,10 +243,14 @@ final class Model: ObservableObject {
     @Published var menuUsageEnabled = true
     @Published var liveUsageError: String?
     @Published var loginInProgress = false
+    /// True when the signed-in account's credits went down since the previous live read.
+    @Published var creditBurning = false
     let liveUsage = CurrentUsageState()
     private var temporaryLogin: TemporaryHomeLogin?
     private var collectingUsage = false
     private var lastLiveRefresh: (id: String, at: Date)?
+    private var burnTracker = CreditBurnTracker()
+    var currentCreditStatus: CreditStatus? { current.flatMap { usage[$0] }?.creditStatus() }
     let store: Store
     let isDemo: Bool
     let lifecycle: AppLifecycle
@@ -226,13 +313,26 @@ final class Model: ObservableObject {
         Task { @MainActor in
             defer { transport.close() }
             await liveUsage.refresh(using: reader)
-            if let error = liveUsage.error { liveUsageError = error.localizedDescription; return }
+            if let error = liveUsage.error { liveUsageError = error.localizedDescription; creditBurning = false; return }
             // Attribute only if the same account is still signed in after the read.
             guard let reading = liveUsage.reading,
                   let active = try? Identity(data: store.read(store.active)).key, active == current else { return }
-            usage[current] = UsageSnapshot(profileID: current, plan: reading.usage.plan, limit: reading.usage.limit, observedAt: reading.usage.observedAt, source: .live)
+            let snapshot = UsageSnapshot(profileID: current, plan: reading.usage.plan, limit: reading.usage.limit, observedAt: reading.usage.observedAt, source: .live)
+            usage[current] = snapshot
+            creditBurning = burnTracker.record(profileID: current, status: snapshot.creditStatus())
             liveUsageError = nil
         }
+    }
+    /// Synthetic credit-mode readings for offscreen previews only: a personal balance on the
+    /// signed-in demo account and a capped business seat on the next one.
+    func applyCreditPreview() {
+        guard isDemo, let current else { return }
+        let now = Date()
+        usage[current] = try? UsageSnapshot.creditDemo(profileID: current, business: false, now: now)
+        if let other = profiles.first(where: { $0.id != current }) {
+            usage[other.id] = try? UsageSnapshot.creditDemo(profileID: other.id, business: true, now: now)
+        }
+        creditBurning = true
     }
     private func codexCandidates() -> [URL] {
         var list: [URL] = []
@@ -355,6 +455,7 @@ final class Model: ObservableObject {
         }
         notice = .neutral
         busy = true
+        creditBurning = false // the next live read decides for the newly selected account
         (lifecycle as? DemoLifecycle)?.scenario = scenario
         Task {
             defer { busy = false; refresh() }

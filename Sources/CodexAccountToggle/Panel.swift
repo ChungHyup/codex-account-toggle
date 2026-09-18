@@ -14,6 +14,8 @@ private enum Palette {
     static let accent = Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(red: 0.40, green: 0.85, blue: 0.73, alpha: 1) : NSColor(red: 0.08, green: 0.43, blue: 0.35, alpha: 1) })
     static let canvas = Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(red: 0.12, green: 0.13, blue: 0.14, alpha: 1) : NSColor(red: 0.97, green: 0.97, blue: 0.96, alpha: 1) })
     static let line = Color.primary.opacity(0.08)
+    static let credit = Color(nsColor: .systemOrange)
+    static let blocked = Color(nsColor: .systemRed)
     static let warning = Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(red: 1, green: 0.70, blue: 0.38, alpha: 1) : NSColor(red: 0.60, green: 0.29, blue: 0.06, alpha: 1) })
 }
 
@@ -80,10 +82,14 @@ struct Panel: View {
         let remaining: Double? = schedule.needsRefresh ? nil : window?.remainingPercent
         let detail = detailLabel(usage: usage, window: window, schedule: schedule)
         let warning = schedule.needsRefresh && window != nil
+        let credit = usage?.creditStatus(at: now)
         return VStack(alignment: .leading, spacing: 3) {
-            titleLine(profile, usage: usage, remaining: remaining)
+            titleLine(profile, usage: usage, remaining: remaining, credit: credit)
             detailLine(left: detail.left, right: detail.right, help: detail.help, warning: warning)
-            if window != nil { quotaBar(remaining) }
+            if let credit { creditLines(credit, now: now) }
+            if let credit, let share = credit.capRemainingPercent {
+                quotaBar(share, tint: credit.kind == .blocked ? Palette.blocked : Palette.credit)
+            } else if window != nil { quotaBar(remaining) }
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
         .background(Palette.accent.opacity(0.06))
@@ -96,13 +102,14 @@ struct Panel: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(L10n.text("현재 선택됨") + ", " + profile.name + ", " + profile.email)
     }
-    private func titleLine(_ profile: Profile, usage: UsageSnapshot?, remaining: Double?) -> some View {
+    private func titleLine(_ profile: Profile, usage: UsageSnapshot?, remaining: Double?, credit: CreditStatus?) -> some View {
         HStack(spacing: 7) {
             avatar(profile, size: 26, active: true)
             Text(profile.name).font(.system(size: 14, weight: .semibold)).lineLimit(1).truncationMode(.middle)
             planBadge(profile)
             Spacer(minLength: 6)
-            percentLabel(usage: usage, remaining: remaining, size: 16)
+            if let credit { creditLabel(credit, size: 16, burning: model.creditBurning) }
+            else { percentLabel(usage: usage, remaining: remaining, size: 16) }
         }
     }
     private func detailLine(left: String, right: String, help: String, warning: Bool) -> some View {
@@ -112,10 +119,10 @@ struct Panel: View {
             Text(right).font(.system(size: 11.5)).lineLimit(1).fixedSize().foregroundStyle(warning ? Palette.warning : Color.secondary)
         }.help(help)
     }
-    private func quotaBar(_ remaining: Double?) -> some View {
+    private func quotaBar(_ remaining: Double?, tint: Color? = nil) -> some View {
         GeometryReader { geometry in
-            Capsule().fill(Palette.accent.opacity(0.12))
-            Capsule().fill((remaining ?? 100) <= 20 ? Palette.warning : Palette.accent)
+            Capsule().fill((tint ?? Palette.accent).opacity(0.12))
+            Capsule().fill(tint ?? ((remaining ?? 100) <= 20 ? Palette.warning : Palette.accent))
                 .frame(width: geometry.size.width * (remaining ?? 0) / 100)
         }.frame(height: 4).padding(.top, 2).accessibilityHidden(true)
     }
@@ -146,7 +153,8 @@ struct Panel: View {
                     }
                 }
                 Spacer(minLength: 8)
-                percentLabel(usage: usage, remaining: remaining, size: 14)
+                if let credit = usage?.creditStatus() { creditLabel(credit, size: 14, burning: false) }
+                else { percentLabel(usage: usage, remaining: remaining, size: 14) }
                 Image(systemName: "arrow.left.arrow.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
             }.padding(.horizontal, 12).padding(.vertical, hasDetail ? 6 : 8).contentShape(Rectangle())
         }
@@ -186,6 +194,30 @@ struct Panel: View {
                 .font(.system(size: size, weight: .semibold, design: .rounded)).monospacedDigit()
                 .foregroundStyle(usage == nil ? Color.secondary : (remaining ?? 100) <= 20 ? Palette.warning : Color.primary)
         }.fixedSize().help(usage.map(usageCaption) ?? L10n.text("사용량 미확인"))
+    }
+    /// Credit mode replaces the quota percentage: orange dollar mark with the remaining cap share or balance.
+    private func creditLabel(_ credit: CreditStatus, size: CGFloat, burning: Bool) -> some View {
+        let blocked = credit.kind == .blocked
+        return HStack(alignment: .firstTextBaseline, spacing: 3) {
+            Image(systemName: blocked ? "exclamationmark.triangle.fill" : "dollarsign.circle.fill")
+                .font(.system(size: size * 0.8, weight: .semibold))
+            if let value = credit.shortValue {
+                Text(value).font(.system(size: size, weight: .semibold, design: .rounded)).monospacedDigit()
+            }
+        }
+        .foregroundStyle(blocked ? Palette.blocked : Palette.credit).fixedSize()
+        .help(credit.fullDescription(now: Date(), burning: burning))
+    }
+    private func creditLines(_ credit: CreditStatus, now: Date) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(credit.headline(burning: model.creditBurning)).font(.system(size: 11.5, weight: .semibold))
+                .foregroundStyle(credit.kind == .blocked ? Palette.blocked : Palette.credit).lineLimit(1)
+            if let detail = credit.detail(now: now) {
+                Text(detail).font(.system(size: 11.5)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.tail)
+            }
+        }
+        .padding(.top, 2)
+        .help(credit.fullDescription(now: now, burning: model.creditBurning))
     }
     private func marker(_ usage: UsageSnapshot?) -> String? {
         guard let usage, !productPreview else { return nil }

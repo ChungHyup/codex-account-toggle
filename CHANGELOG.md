@@ -7,6 +7,7 @@
 
 ## Unreleased
 
+- Credit mode: when the weekly allowance is used up and Codex continues on credits, the menu bar shows an orange dollar mark with the remaining share of a business seat's monthly credit limit, or a personal balance in compact form (850, 2.8K, 12K). The mark blinks only while credits are going down between reads, never with Reduce Motion, and the signed-in account is read every minute while on credits. Blocked usage shows a red warning. The panel adds the credit status and limit, and `--render-preview --credit-preview` renders it with synthetic data.
 - When the Codex desktop app has quit but left helper processes behind (all inside its own bundle), the switch now offers to clean them up instead of waiting; CLI sessions outside the bundle still block the switch.
 - README: per-OS steps for approving the unnotarized beta on first launch.
 
