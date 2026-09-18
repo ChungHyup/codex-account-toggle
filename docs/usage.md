@@ -8,6 +8,18 @@ In real-account mode, `AppServerTransport` starts a short-lived `codex app-serve
 
 Remaining percentage means `100 - usedPercent`, clamped to 0–100. Missing values remain unknown. The Codex bucket is preferred in `rateLimitsByLimitId`; another bucket is never substituted. The service's actual window duration determines the label. These are usage allowances, not token balances.
 
+## Credit mode
+
+Updated 2026-09-18. The Codex bucket of `account/rateLimits/read` also carries `credits` (hasCredits, unlimited, balance), `individualLimit` (a seat's monthly credit limit set by a workspace admin: limit, used, remainingPercent, resetsAt), `rateLimitReachedType`, and `spendControlReached`. On a real business seat at 100% weekly usage the response had hasCredits true, balance null, no block reason, and `ordinaryUsageAllowed` still true, so that last field is not used as a signal.
+
+- **Credit mode:** the weekly window is at 100% and not yet reset, credits are available, and there is no block reason.
+- **Blocked:** a block reason is present or `spendControlReached` is true. `*_credits_depleted` and the spend-control flag read as "credits depleted".
+- **Value:** a seat with a monthly limit shows the remaining share as a percentage (business). Otherwise the balance is shown rounded down as 850, 1K, 2.8K, 12K, or 1.2M (personal). With neither, only the mark is shown.
+- **Spending now:** the limit's used amount rose, or the balance fell, between two reads of the same account. The first read, an unchanged value, a monthly reset, and leaving credit mode all clear it. While in credit mode the signed-in account is read every minute.
+- **Menu bar:** an orange dollar mark with the value. The mark blinks every 0.6 seconds only while credits are being spent, and never when Reduce Motion is on. Blocked usage shows a red warning mark.
+- The official ChatGPT app shows credits only as counts. Showing a business seat as a percentage is the owner's choice; tooltips add the exact used/limit counts and reset time.
+- Inactive accounts are not queried, so credit state follows the signed-in account. A row keeps its last live credit value after a switch.
+
 ## Local history
 
 Inactive accounts can show a last known reading extracted from local `sessions/**/*.jsonl` token-count events. A recent-file scan uses tails first, with a bounded-size full-file fallback. Unrelated rollout content is discarded, not stored as conversation data.
@@ -20,4 +32,4 @@ Snapshots are stored as private `usage.json` files in the application's existing
 
 The app refreshes on panel opening and approximately every four minutes. Live attempts are throttled to at least 60 seconds unless explicitly forced, and skipped during switching, recovery, or account onboarding. Reset labels update locally every 30 seconds. Dates use Asia/Seoul (KST), including in English. Expired values are not automatically replaced by 100%.
 
-실사용 모드의 현재 계정 조회는 연결되어 있습니다. 비활성 계정은 로컬 기록이 있을 때만 표시하며, 최초 계정 확인 이전 값은 추정하지 않습니다. 잔여 %는 토큰 수가 아니라 사용 한도이고, 실제로 제공된 구간만 표시합니다. 실계정 QA는 사용자가 별도로 수행하며 자동 테스트는 가짜 응답과 임시 폴더만 사용합니다.
+실사용 모드의 현재 계정 조회는 연결되어 있습니다. 주간 한도를 다 쓰고 크레딧으로 넘어가면 메뉴 막대가 주황색 $로 바뀌어 비즈니스는 월간 크레딧 한도의 남은 %, 개인은 2.8K 같은 잔액을 보여주고, 실제로 차감되는 동안 깜빡입니다. 비활성 계정은 로컬 기록이 있을 때만 표시하며, 최초 계정 확인 이전 값은 추정하지 않습니다. 잔여 %는 토큰 수가 아니라 사용 한도이고, 실제로 제공된 구간만 표시합니다. 실계정 QA는 사용자가 별도로 수행하며 자동 테스트는 가짜 응답과 임시 폴더만 사용합니다.
