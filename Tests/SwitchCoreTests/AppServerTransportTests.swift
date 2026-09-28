@@ -112,6 +112,36 @@ final class AppServerTransportTests: XCTestCase {
         XCTAssertEqual(CodexExecutable.locate(candidates: [plain, script], environment: [:]), script)
         XCTAssertEqual(CodexExecutable.locate(candidates: [plain], environment: ["CODEX_CLI_PATH": script.path]), script)
     }
+    func fakeBundle(_ relative: String) throws -> URL {
+        let app = base.appendingPathComponent(UUID().uuidString + "/ChatGPT.app")
+        let exe = app.appendingPathComponent("Contents/Resources/" + relative)
+        try FileManager.default.createDirectory(at: exe.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try "#!/bin/sh\n".write(to: exe, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: exe.path)
+        return app
+    }
+    func testFindsTheCLIAfterTheDesktopAppMovedIt() throws {
+        let current = try fakeBundle("codex-cli/bin/codex")
+        XCTAssertEqual(CodexExecutable.locate(candidates: CodexExecutable.inBundle(current), environment: [:])?.path,
+                       current.appendingPathComponent("Contents/Resources/codex-cli/bin/codex").path)
+        let old = try fakeBundle("codex")
+        XCTAssertEqual(CodexExecutable.locate(candidates: CodexExecutable.inBundle(old), environment: [:])?.lastPathComponent, "codex")
+        let nested = try fakeBundle("codex-cli/CodexCLI.app/Contents/MacOS/codex")
+        let plain = try fakeBundle("tools/future/codex")
+        // The fallback search reports resolved paths (/private/var/...), so compare resolved forms.
+        XCTAssertEqual(CodexExecutable.locate(candidates: CodexExecutable.inBundle(nested), environment: [:])?.resolvingSymlinksInPath().path,
+                       nested.appendingPathComponent("Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex").resolvingSymlinksInPath().path)
+        XCTAssertEqual(CodexExecutable.locate(candidates: CodexExecutable.inBundle(plain), environment: [:])?.resolvingSymlinksInPath().path,
+                       plain.appendingPathComponent("Contents/Resources/tools/future/codex").resolvingSymlinksInPath().path)
+    }
+    func testDanglingLinkToTheOldLocationIsSkipped() throws {
+        let app = try fakeBundle("codex-cli/bin/codex")
+        let link = base.appendingPathComponent("dangling-codex")
+        try FileManager.default.createSymbolicLink(atPath: link.path, withDestinationPath: base.appendingPathComponent("gone/codex").path)
+        XCTAssertNil(CodexExecutable.locate(candidates: [link], environment: [:]))
+        XCTAssertEqual(CodexExecutable.locate(candidates: [link] + CodexExecutable.inBundle(app), environment: [:])?.lastPathComponent, "codex")
+        XCTAssertNil(CodexExecutable.locate(candidates: CodexExecutable.inBundle(base.appendingPathComponent("NoSuch.app")), environment: [:]))
+    }
     func testLimitsRequestSkipsResetCreditDetails() throws {
         let request = try XCTUnwrap(JSONSerialization.jsonObject(with: AccountReadRequest.limits.encoded(id: 3)) as? [String: Any])
         XCTAssertEqual((request["params"] as? [String: Bool])?["excludeResetCreditDetails"], true)

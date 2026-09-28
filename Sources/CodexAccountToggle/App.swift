@@ -354,7 +354,7 @@ final class Model: ObservableObject {
     }
     private func codexCandidates() -> [URL] {
         var list: [URL] = []
-        if let app = try? (lifecycle as? CodexLifecycle)?.codexURL() { list.append(app.appendingPathComponent("Contents/Resources/codex")) }
+        if let app = try? (lifecycle as? CodexLifecycle)?.codexURL() { list += CodexExecutable.inBundle(app) }
         return list + CodexExecutable.defaultCandidates
     }
     /// Live mode: quota comes from readings Codex already wrote to its local session logs.

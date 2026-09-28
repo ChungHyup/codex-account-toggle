@@ -9,11 +9,30 @@ public enum CodexExecutable {
             urls.append(URL(fileURLWithPath: override))
         }
         urls.append(contentsOf: candidates)
-        return urls.first { url in
-            var directory: ObjCBool = false
-            return FileManager.default.fileExists(atPath: url.path, isDirectory: &directory) && !directory.boolValue
-                && FileManager.default.isExecutableFile(atPath: url.path)
+        return urls.first(where: isExecutable)
+    }
+    /// Where the desktop app ships its CLI. ChatGPT 26.924 moved it from `Resources/codex` to
+    /// `Resources/codex-cli/bin/codex`; both are tried, and if neither exists the bundle's
+    /// resources are searched for an executable named `codex` so the next move does not break reads.
+    public static func inBundle(_ app: URL) -> [URL] {
+        let resources = app.appendingPathComponent("Contents/Resources")
+        let known = [resources.appendingPathComponent("codex-cli/bin/codex"), resources.appendingPathComponent("codex")]
+        if known.contains(where: { isExecutable($0) }) { return known }
+        var found: [URL] = []
+        let keys: [URLResourceKey] = [.isRegularFileKey]
+        if let walker = FileManager.default.enumerator(at: resources, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles]) {
+            for case let url as URL in walker where url.lastPathComponent == "codex" && isExecutable(url) {
+                found.append(url)
+            }
         }
+        // Prefer a plain bin/ layout over an executable nested in a helper app.
+        return known + found.sorted { ($0.path.contains(".app/") ? 1 : 0, $0.path) < ($1.path.contains(".app/") ? 1 : 0, $1.path) }
+    }
+    /// Follows symlinks, so a link whose target moved away is not executable.
+    static func isExecutable(_ url: URL) -> Bool {
+        var directory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: url.path, isDirectory: &directory) && !directory.boolValue
+            && FileManager.default.isExecutableFile(atPath: url.path)
     }
     public static var defaultCandidates: [URL] {
         let home = FileManager.default.homeDirectoryForCurrentUser
