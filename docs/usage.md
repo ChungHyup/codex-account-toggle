@@ -13,6 +13,7 @@ Remaining percentage means `100 - usedPercent`, clamped to 0–100. Missing valu
 Updated 2026-09-18. The Codex bucket of `account/rateLimits/read` also carries `credits` (hasCredits, unlimited, balance), `individualLimit` (a seat's monthly credit limit set by a workspace admin: limit, used, remainingPercent, resetsAt), `rateLimitReachedType`, and `spendControlReached`. On a real business seat at 100% weekly usage the response had hasCredits true, balance null, no block reason, and `ordinaryUsageAllowed` still true, so that last field is not used as a signal.
 
 - **Credit mode:** the weekly window is at 100% and not yet reset, credits are available, and there is no block reason.
+- **Both states require an exhausted window:** some window at 100% and not yet reset. A seat whose monthly cap is still marked reached after its weekly allowance reset (observed 2026-09-28: weekly 3%, cap 2,501 / 2,500) shows its normal quota.
 - **Blocked:** a block reason is present or `spendControlReached` is true. `*_credits_depleted` and the spend-control flag read as "credits depleted".
 - **Value:** a seat with a monthly limit shows the remaining share as a percentage (business). Otherwise the balance is shown rounded down as 850, 1K, 2.8K, 12K, or 1.2M (personal). With neither, only the mark is shown.
 - **Spending now:** the limit's used amount rose, or the balance fell, between two reads of the same account. The first read, an unchanged value, a monthly reset, and leaving credit mode all clear it. While in credit mode the signed-in account is read every minute.
@@ -20,6 +21,10 @@ Updated 2026-09-18. The Codex bucket of `account/rateLimits/read` also carries `
 - The official ChatGPT app shows credits only as counts. Showing a business seat as a percentage is the owner's choice; tooltips add the exact used/limit counts and reset time.
 - Local records carry `credits`, `individual_limit`, and the block fields too, and are parsed the same way. A fresh live reading (under five minutes) is never replaced by local history, because Codex writes a newer local line on every turn.
 - Inactive accounts are not queried, so credit state follows the signed-in account. A row keeps its last live credit value after a switch.
+
+## Finding the CLI
+
+Live reads run the CLI bundled with the Codex desktop app. ChatGPT 26.924 moved it from `Contents/Resources/codex` to `Contents/Resources/codex-cli/bin/codex`; both are tried, then the bundle's resources are searched for an executable named `codex`, then `CODEX_CLI_PATH` and common install paths. Dangling links are skipped. When no live read has succeeded for five minutes, the menu bar item dims with `~` and the tooltip and panel show the reason instead of silently showing a frozen value.
 
 ## Local history
 

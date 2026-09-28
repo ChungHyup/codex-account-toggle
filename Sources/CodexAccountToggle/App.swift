@@ -118,6 +118,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         item.button?.action = #selector(toggle)
         model.$usage.combineLatest(model.$current, model.$menuUsageEnabled, model.$creditBurning)
             .receive(on: RunLoop.main).sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
+        model.$liveUsageError.receive(on: RunLoop.main).sink { [weak self] _ in self?.updateMenuTitle() }.store(in: &subscriptions)
         // While credits are in use, read the signed-in account every minute so spending shows up quickly.
         Timer.publish(every: 60, on: .main, in: .common).autoconnect()
             .sink { [weak self] _ in
@@ -167,40 +168,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private func updateMenuTitle() {
         guard let button = item.button else { return }
         let snapshot = model.current.flatMap { model.usage[$0] }
+        // A stopped live read dims the item in every mode so a frozen value is never mistaken for a current one.
+        button.appearsDisabled = model.liveIsStale
+        let staleNote = model.liveIsStale ? model.liveStaleReason + "\n" : ""
         if let snapshot, let credit = snapshot.creditStatus() {
-            showCredit(credit, snapshot: snapshot, on: button)
+            showCredit(credit, snapshot: snapshot, on: button, staleNote: staleNote)
             return
         }
         stopPulse()
         button.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Account Toggle")
-        guard model.menuUsageEnabled else { button.title = ""; return }
+        guard model.menuUsageEnabled else { button.title = ""; button.toolTip = staleNote.isEmpty ? nil : staleNote; return }
         let window = snapshot?.preferredWindow
         let remaining = window?.resetPassed(at: Date()) == true ? nil : window?.remainingPercent
         let value = remaining.map { "\(Int($0.rounded(.down)))%" } ?? "—"
-        let stale = snapshot?.isStale(at: Date()) == true ? "~" : ""
+        let stale = model.liveIsStale || snapshot?.isStale(at: Date()) == true ? "~" : ""
         button.title = " " + (model.isDemo ? "D " : "") + stale + value
         let prefix = snapshot?.source == .sessionLog ? L10n.text("기록 · ") : model.isDemo ? L10n.text("샘플 · ") : ""
-        button.toolTip = prefix + (window?.title ?? L10n.text("사용 한도")) + " · " + value + L10n.text(" 남음")
+        button.toolTip = staleNote + prefix + (window?.title ?? L10n.text("사용 한도")) + " · " + value + L10n.text(" 남음")
     }
     /// Credit mode: an orange dollar mark with the remaining cap share (business) or the balance
     /// (personal). The mark blinks only while credits are actually going down, and never when the
     /// system asks to reduce motion. Blocked usage shows a red warning mark instead.
-    private func showCredit(_ credit: CreditStatus, snapshot: UsageSnapshot, on button: NSStatusBarButton) {
+    private func showCredit(_ credit: CreditStatus, snapshot: UsageSnapshot, on button: NSStatusBarButton, staleNote: String) {
         let blocked = credit.kind == .blocked
         let color: NSColor = blocked ? .systemRed : .systemOrange
         let symbol = blocked ? "exclamationmark.triangle.fill" : "dollarsign.circle.fill"
         let headline = credit.headline(burning: model.creditBurning)
         let mark = tintedSymbol(symbol, color, headline)
         creditImages = (mark, mark.map { faded($0, 0.3) })
-        let value = model.menuUsageEnabled ? (credit.shortValue ?? "") : ""
+        let value = model.menuUsageEnabled ? (credit.shortValue.map { (staleNote.isEmpty ? "" : "~") + $0 } ?? "") : ""
         button.attributedTitle = NSAttributedString(string: value.isEmpty ? "" : " " + value,
                                                     attributes: [.foregroundColor: color, .font: NSFont.menuBarFont(ofSize: 0)])
-        var tip = credit.fullDescription(now: Date(), burning: model.creditBurning)
+        var tip = staleNote + credit.fullDescription(now: Date(), burning: model.creditBurning)
         if !blocked, let window = snapshot.preferredWindow {
             tip += "\n" + window.title + " · " + ResetSchedule(timestamp: window.resetsAt, now: Date(), language: L10n.language).compactLabel
         }
         button.toolTip = tip
-        let pulse = !blocked && model.creditBurning && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let pulse = !blocked && staleNote.isEmpty && model.creditBurning && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         if !pulse { stopPulse() }
         button.image = pulseDim ? creditImages.dim : creditImages.on
         if pulse { startPulse() }
@@ -268,6 +272,14 @@ final class Model: ObservableObject {
     private var collectingUsage = false
     private var lastLiveRefresh: (id: String, at: Date)?
     private var burnTracker = CreditBurnTracker()
+    private var lastLiveSuccess: (id: String, at: Date)?
+    /// The signed-in account has no successful live read for five minutes, or its first read failed.
+    var liveIsStale: Bool {
+        guard !isDemo, let current else { return false }
+        if let last = lastLiveSuccess, last.id == current { return Date().timeIntervalSince(last.at) > 300 }
+        return liveUsageError != nil
+    }
+    var liveStaleReason: String { liveUsageError ?? L10n.text("실시간 조회가 5분 넘게 되지 않아 마지막 값을 보여줍니다.") }
     var currentCreditStatus: CreditStatus? { current.flatMap { usage[$0] }?.creditStatus() }
     let store: Store
     let isDemo: Bool
@@ -338,6 +350,7 @@ final class Model: ObservableObject {
             let snapshot = UsageSnapshot(profileID: current, plan: reading.usage.plan, limit: reading.usage.limit, observedAt: reading.usage.observedAt, source: .live)
             usage[current] = snapshot
             creditBurning = burnTracker.record(profileID: current, status: snapshot.creditStatus())
+            lastLiveSuccess = (current, Date())
             liveUsageError = nil
         }
     }

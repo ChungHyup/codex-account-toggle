@@ -106,11 +106,13 @@ extension UsageSnapshot {
     /// Nil while the plan allowance still covers usage.
     public func creditStatus(at date: Date = Date()) -> CreditStatus? {
         guard let limit else { return nil }
+        // Credits only matter while a plan window is used up and not yet reset. A leftover block signal,
+        // such as a monthly credit cap that stays reached until the 1st, must not hide a restored allowance.
+        let exhausted = windows.contains { ($0.usedPercent ?? 0) >= 100 && !$0.resetPassed(at: date) }
+        guard exhausted else { return nil }
         let reason = limit.rateLimitReachedType.flatMap { $0.isEmpty ? nil : $0 }
         let blocked = reason != nil || limit.spendControlReached == true
-        let window = preferredWindow
-        let exhausted = (window?.usedPercent ?? 0) >= 100 && window?.resetPassed(at: date) != true
-        let spending = !blocked && exhausted && limit.credits?.hasCredits == true
+        let spending = !blocked && limit.credits?.hasCredits == true
         guard blocked || spending else { return nil }
         let cap = limit.individualLimit
         return CreditStatus(kind: blocked ? .blocked : .spending,

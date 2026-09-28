@@ -7,6 +7,9 @@
 
 ## Unreleased
 
+- Fixed: after the ChatGPT app update of 2026-09-27 moved its bundled CLI to `Contents/Resources/codex-cli/bin/codex`, live reads were silently skipped and the menu bar froze on its last value. The CLI is now found at the new and old locations, or by searching the bundle.
+- Fixed: a monthly credit cap that stays reached until the 1st no longer shows as a blocked 0% once the weekly allowance resets; credit and blocked states apply only while a window is used up and not yet reset.
+- When live reads have not succeeded for five minutes, the menu bar item dims and shows `~` in every mode, and the tooltip and panel say why.
 - Fixed: opening the panel while Codex was running locally replaced the live credit display with an older-style weekly reading. A fresh live reading now stays authoritative until it is five minutes old, and local records also keep Codex's credit state.
 - Credit mode: when the weekly allowance is used up and Codex continues on credits, the menu bar shows an orange dollar mark with the remaining share of a business seat's monthly credit limit, or a personal balance in compact form (850, 2.8K, 12K). The mark blinks only while credits are going down between reads, never with Reduce Motion, and the signed-in account is read every minute while on credits. Blocked usage shows a red warning. The panel adds the credit status and limit, and `--render-preview --credit-preview` renders it with synthetic data.
 - When the Codex desktop app has quit but left helper processes behind (all inside its own bundle), the switch now offers to clean them up instead of waiting; CLI sessions outside the bundle still block the switch.

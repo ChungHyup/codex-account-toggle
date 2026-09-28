@@ -86,6 +86,10 @@ struct Panel: View {
         return VStack(alignment: .leading, spacing: 3) {
             titleLine(profile, usage: usage, remaining: remaining, credit: credit)
             detailLine(left: detail.left, right: detail.right, help: detail.help, warning: warning)
+            if model.liveIsStale, window != nil {
+                Text(model.liveStaleReason).font(.system(size: 11)).foregroundStyle(Palette.warning)
+                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+            }
             if let credit { creditLines(credit, now: now) }
             if let credit, let share = credit.capRemainingPercent {
                 quotaBar(share, tint: credit.kind == .blocked ? Palette.blocked : Palette.credit)

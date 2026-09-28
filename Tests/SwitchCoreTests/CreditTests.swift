@@ -60,6 +60,16 @@ final class CreditTests: XCTestCase {
         XCTAssertFalse(limited.blockedByCredits)
         XCTAssertEqual(limited.shortValue, "0")
     }
+    func testRestoredAllowanceBeatsLeftoverBlockSignals() throws {
+        // Observed 2026-09-28: weekly 3% used, monthly credit cap 2,501 / 2,500 and still marked reached.
+        XCTAssertNil(try business(used: "2501", remaining: 0, weeklyUsed: 3, spendReached: true).creditStatus(at: now))
+        XCTAssertNil(try business(remaining: 0, weeklyUsed: 3, reached: "workspace_member_credits_depleted").creditStatus(at: now))
+        // A blocked reading stops counting once its window's reset time passes.
+        let afterReset = Date(timeIntervalSince1970: 1_790_064_805)
+        XCTAssertNotNil(try business(remaining: 0, reached: "workspace_member_credits_depleted").creditStatus(at: now))
+        XCTAssertNil(try business(remaining: 0, reached: "workspace_member_credits_depleted").creditStatus(at: afterReset))
+        XCTAssertNil(try personal(balance: "0", hasCredits: false, reached: "rate_limit_reached").creditStatus(at: afterReset))
+    }
     func testBurnTrackerNeedsARisingMeter() throws {
         var tracker = CreditBurnTracker()
         XCTAssertFalse(tracker.record(profileID: "b", status: try business(used: "1319.6").creditStatus(at: now)), "first reading has no baseline")
