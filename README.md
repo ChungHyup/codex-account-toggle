@@ -21,9 +21,9 @@ A small, native menu-bar app for people who use more than one Codex or Claude ac
 
 ## A small menu. The details that matter.
 
-| Light | Dark |
+| Codex | Claude |
 | :---: | :---: |
-| <img src="docs/screenshots/product-en.png" width="300" alt="Light account panel"> | <img src="docs/screenshots/product-en-dark.png" width="300" alt="Dark account panel"> |
+| <img src="docs/screenshots/product-en.png" width="300" alt="Codex accounts with quota"> | <img src="docs/screenshots/claude-en.png" width="300" alt="Claude desktop and terminal accounts with usage"> |
 
 *Actual app views rendered with fictional accounts and sample quota. These are design previews, not readings from a real account.*
 
@@ -31,31 +31,33 @@ A small, native menu-bar app for people who use more than one Codex or Claude ac
 - **Switch with a clear confirmation.** See which account you chose and whether Codex needs to restart. Cancel is the default.
 - **See quota before you switch.** The signed-in account gets a live reading. Inactive accounts show a last known local reading when it can be attributed; missing values stay unknown.
 - **Know when you are paying.** When the weekly allowance runs out and Codex keeps going on credits, the menu bar turns into an orange $ with the remaining share of a business seat's monthly credit limit, or a personal balance such as 2.8K. It blinks while credits are actually being spent and turns red if usage is blocked.
-- **Switch Claude accounts too.** The panel's Claude tab switches terminal `claude` accounts instantly (one config folder per account, the documented way) and keeps several Claude desktop accounts signed in, switching them by relinking the app's data folder, with no sign-out. Claude restarts on each switch. See [Claude desktop accounts](docs/claude-desktop.md).
+- **Switch Claude accounts too.** The panel's Claude tab switches terminal `claude` accounts instantly (one config folder per account, the documented way) and keeps several Claude desktop accounts signed in, switching them by relinking the app's data folder, with no sign-out. Claude restarts on each switch. Each account shows its 5-hour and weekly allowance left, read from Claude's own local records, and a hit limit shows when it lifts. See [Claude desktop accounts](docs/claude-desktop.md).
 - **Make the menu yours.** Rename or remove saved accounts, show quota in the menu bar, and choose English or Korean. Light and dark appearance follow macOS.
 - **Keep control of your data.** No app-operated cloud sync or analytics. Authentication is handled by Codex; saved sign-in copies stay on your Mac.
 
 ## Install
 
-1. Download **Codex-Account-Toggle-0.2.0-beta.1-universal.dmg** from [Releases](https://github.com/ChungHyup/pinch-hitter/releases/tag/v0.2.0-beta.1).
-2. Open the DMG and drag **Codex Account Toggle** to **Applications**.
+1. Download **Pinch-Hitter-0.3.0-beta.1-universal.dmg** from [Releases](https://github.com/ChungHyup/pinch-hitter/releases/tag/v0.3.0-beta.1).
+2. Open the DMG and drag **Pinch Hitter** to **Applications**.
 3. Open the app and click the circular-arrows icon in your menu bar.
 
 **This is a beta, locally ad-hoc signed and not notarized.** macOS blocks it on first launch; approving it takes one trip to System Settings (below). If your organization's policy does not allow that, build from source instead. There is no automatic updater yet.
+
+**Upgrading from Codex Account Toggle?** Quit it from the menu bar first, then move it to the Trash. Pinch Hitter keeps your saved accounts and copies your settings, including live mode, on first launch.
 
 ### If macOS blocks the app
 
 This approves only this app; it does not lower system security in general.
 
-- **macOS 15 (Sequoia) and later:** open the app once and dismiss the "Apple could not verify" dialog, then open **System Settings → Privacy & Security**, scroll to the security section, click **Open Anyway** next to Codex Account Toggle, and confirm.
+- **macOS 15 (Sequoia) and later:** open the app once and dismiss the "Apple could not verify" dialog, then open **System Settings → Privacy & Security**, scroll to the security section, click **Open Anyway** next to Pinch Hitter, and confirm.
 - **macOS 13–14:** Control-click the app in Applications, choose **Open**, then click **Open** in the dialog.
 - **Terminal alternative:** remove the download quarantine flag from this app only:
 
 ```sh
-xattr -d com.apple.quarantine "/Applications/Codex Account Toggle.app"
+xattr -d com.apple.quarantine "/Applications/Pinch Hitter.app"
 ```
 
-Requires **macOS 13+** and an installed **Codex desktop app** for real account switching. The DMG includes both Apple Silicon and Intel code; Intel compilation is verified, but Intel hardware QA is still pending.
+Requires **macOS 13+**. Codex switching needs the **Codex desktop app**; the Claude tab works with **Claude desktop** and terminal **Claude Code**. The DMG includes both Apple Silicon and Intel code; Intel compilation is verified, but Intel hardware QA is still pending.
 
 ## First real account
 

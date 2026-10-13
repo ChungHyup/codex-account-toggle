@@ -1,6 +1,6 @@
 # Publication status
 
-The repository is public (`ChungHyup/pinch-hitter`, MIT) and `v0.2.0-beta.1` is a public prerelease with a universal DMG and checksum. This page tracks what remains before a wider announcement and a non-beta release.
+The repository is public (`ChungHyup/pinch-hitter`, MIT) and `v0.2.0-beta.1` is a public prerelease with a universal DMG and checksum. `v0.3.0-beta.1` (first release as Pinch Hitter) is prepared: release notes in `docs/releases/v0.3.0-beta.1.md`, review in `docs/release-review-0.3.0.md`. This page tracks what remains before a wider announcement and a non-beta release.
 
 Done:
 
@@ -14,7 +14,7 @@ Before announcing widely:
 
 1. Apple Developer Program: sign with Developer ID and notarize the DMG so first launch does not require the Gatekeeper approval steps in the README. This is the single biggest install-friction item.
 2. Enable private vulnerability reporting and secret scanning in the repository settings; add branch protection for `main` requiring the CI check.
-3. Add repository topics and a social preview image so the project is discoverable and shares well.
+3. Add a social preview image (topics are set) so the project is discoverable and shares well.
 4. Record a short demo (switch, quota, add account) with fictional or masked accounts; never show real emails or tokens.
 5. Decide the support policy for issues (macOS versions, Codex desktop versions) and write a short FAQ: Gatekeeper, "do not log out in the ChatGPT app", per-account remote/cloud thread visibility, KST reset times.
 

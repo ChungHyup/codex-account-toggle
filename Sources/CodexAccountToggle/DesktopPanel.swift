@@ -68,6 +68,10 @@ final class DesktopModel: ObservableObject {
         if isDemo {
             do { store = try DesktopDemoWorkspace.make() }
             catch { fatalError(L10n.text("데모 작업 폴더를 만들 수 없습니다. 실제 계정에 접근하지 않고 종료합니다.")) }
+            // Product screenshots show the usual state: the current synthetic account already saved.
+            if CommandLine.arguments.contains("--render-preview"), CommandLine.arguments.contains("--product-preview") {
+                _ = try? store.adoptActive(name: L10n.text("개인 Claude"))
+            }
             lifecycle = DemoLifecycle()
         } else {
             let support = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")

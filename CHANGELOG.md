@@ -1,11 +1,10 @@
 # Changelog
 
-## 0.2.0-beta.1 — 2026-09-14
-
-- First universal macOS DMG prerelease with original toggle logo and bilingual product README.
-- Release review: conservative history attribution, safe profile deletion, duration validation, isolated previews, and explicit temporary credential storage.
-
 ## Unreleased
+
+## 0.3.0-beta.1 — 2026-10-13
+
+First release as **Pinch Hitter** (formerly Codex Account Toggle).
 
 - Renamed the app to **Pinch Hitter** now that it switches Claude accounts too. The bundle identifier is now `com.chunghyup.pinch-hitter`; the first launch copies the earlier preferences (including live mode) once. Saved accounts and storage paths are unchanged. If the old-name app is still running, quit it first. See docs/provenance-review.md.
 - Claude usage on the Claude tab: 5-hour and weekly allowance left for every desktop and terminal account, from the desktop app's local usage records. The 5-hour reset is estimated, the weekly reset is set once per account from Claude's settings, and a limit refusal recorded by Claude Code shows the exact time it lifts. Local files only; see docs/claude-desktop.md.
@@ -18,6 +17,11 @@
 - Credit mode: when the weekly allowance is used up and Codex continues on credits, the menu bar shows an orange dollar mark with the remaining share of a business seat's monthly credit limit, or a personal balance in compact form (850, 2.8K, 12K). The mark blinks only while credits are going down between reads, never with Reduce Motion, and the signed-in account is read every minute while on credits. Blocked usage shows a red warning. The panel adds the credit status and limit, and `--render-preview --credit-preview` renders it with synthetic data.
 - When the Codex desktop app has quit but left helper processes behind (all inside its own bundle), the switch now offers to clean them up instead of waiting; CLI sessions outside the bundle still block the switch.
 - README: per-OS steps for approving the unnotarized beta on first launch.
+
+## 0.2.0-beta.1 — 2026-09-14
+
+- First universal macOS DMG prerelease with original toggle logo and bilingual product README.
+- Release review: conservative history attribution, safe profile deletion, duration validation, isolated previews, and explicit temporary credential storage.
 
 ## Development history
 
