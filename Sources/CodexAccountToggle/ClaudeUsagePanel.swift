@@ -164,8 +164,6 @@ struct ClaudeUsageText {
         return L10n.format("%@ 도달 · %@ 풀림", window, Self.clock(block.resetsAt, now: now))
     }
     var age: String? { entry.estimate.map { Self.age($0.observed, now: now) } }
-    /// Records older than this are called out, since the desktop app only records while it runs.
-    var isStale: Bool { entry.estimate.map { now.timeIntervalSince($0.observed) > 30 * 60 } ?? false }
     var help: String {
         L10n.text("Claude 데스크톱 앱이 기록한 사용량입니다. 5시간 초기화 시각은 추정값이고, 주간 초기화는 직접 입력한 시각입니다. 한도에 걸리면 Claude Code 기록의 정확한 시각을 보여줍니다.")
     }
@@ -194,10 +192,9 @@ struct ClaudeUsageText {
     }
 }
 
-/// Usage under an account name: amounts, then resets or the blocking limit.
+/// Usage under an account name on one line; reset times stay in the tooltip. A blocking limit adds a line.
 struct ClaudeUsageLines: View {
     let entry: ClaudeUsageBoard.Entry
-    var compact = false
 
     var body: some View {
         let text = ClaudeUsageText(entry: entry, now: Date())
@@ -206,15 +203,7 @@ struct ClaudeUsageLines: View {
                 Label(block, systemImage: "hourglass").labelStyle(.titleAndIcon)
                     .font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.warning).lineLimit(1)
             }
-            if compact {
-                if let amounts = text.amounts { line(amounts, primary: !text.blocked) }
-            } else {
-                if let five = text.fiveHourLine { line(five, primary: true) }
-                if let week = text.weeklyLine { line(week, primary: true) }
-                if text.isStale, let age = text.age {
-                    Text(age).font(.system(size: 10.5)).foregroundStyle(.secondary).lineLimit(1)
-                }
-            }
+            if let amounts = text.amounts { line(amounts, primary: !text.blocked) }
         }.help(([text.blockLine, text.fiveHourLine, text.weeklyLine, text.age].compactMap { $0 } + [text.help]).joined(separator: "\n"))
     }
     private func line(_ value: String, primary: Bool) -> some View {

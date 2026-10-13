@@ -32,7 +32,7 @@ The tab shows each account's 5-hour and weekly allowance left, from files the Cl
 - **5-hour reset:** the file has no reset times, so it is estimated as five hours after the window started filling (marked `~`). An expired window shows the full allowance.
 - **Weekly reset:** right-click an account → **Set weekly reset time…** and copy the day and time from Claude's Settings → Usage once per account (stored in this app's folder as `usage-settings.json`). After that time passes, weekly usage shows as reset.
 - **When a limit is hit:** Claude Code writes the refusal with an exact `resetsAt` into its transcript. The app reads the last 512 KB of transcripts changed in the past week and shows the limit and the time it lifts: desktop Code-tab refusals since the last desktop switch count for the desktop account, others for the terminal account whose folder they are in.
-- Records only update while the desktop app runs with that account, so a record older than 30 minutes shows its age.
+- Each account shows one line (5-hour and weekly left); reset times and the record's age are in the tooltip. Records only update while the desktop app runs with that account.
 - Claude Code's status line also receives reset times, but only for Pro and Max subscribers, so it is not used. Calling the usage API with the app's cookies would use subscription credentials outside Anthropic's apps and is excluded.
 
 ## Limits

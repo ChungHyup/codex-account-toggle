@@ -236,7 +236,7 @@ struct DesktopSection: View {
                 badge(profile.name, size: 22, active: false)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(profile.name).font(.system(size: 13, weight: .medium)).foregroundStyle(.primary).lineLimit(1).truncationMode(.tail)
-                    if let entry = usage.desktopSaved[profile.id], !entry.isEmpty { ClaudeUsageLines(entry: entry, compact: true) }
+                    if let entry = usage.desktopSaved[profile.id], !entry.isEmpty { ClaudeUsageLines(entry: entry) }
                 }
                 Spacer(minLength: 8)
                 Image(systemName: "arrow.left.arrow.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
@@ -416,7 +416,7 @@ struct CLISection: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(name).font(.system(size: 13, weight: selected ? .semibold : .regular)).foregroundStyle(.primary).lineLimit(1)
                     Text(email ?? L10n.text("로그인 전")).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
-                    if !entry.isEmpty { ClaudeUsageLines(entry: entry, compact: true) }
+                    if !entry.isEmpty { ClaudeUsageLines(entry: entry) }
                 }
                 Spacer(minLength: 6)
             }.padding(.horizontal, 12).padding(.vertical, 5).contentShape(Rectangle())
