@@ -36,3 +36,7 @@ The former `Codex Switch` name overlaps with [ScWen7/CodexSwitch](https://github
 The app, executable, Swift package/target, resource bundle, bundle identifier, build script, CI, UI translations, and screenshots use the selected name. Reference-project names and source links retain their original spelling.
 
 The existing `Library/Application Support/CodexSwitch` profile path is deliberately preserved. This rename does not inspect or migrate credentials. The new bundle identifier is `com.chunghyup.codex-account-toggle`; preferences under the old identifier are not migrated. An already running old-name app prevents a second normal instance from starting; the old process is never terminated. The local checkout directory remains unchanged. The owner subsequently authorized a private `ChungHyup/codex-account-toggle` repository for MacBook QA; public visibility remains deferred.
+
+## Claude desktop switching references (2026-10-13)
+
+The Claude desktop switcher adapts designs from [ajipurn/agent-profiles](https://github.com/ajipurn/agent-profiles) (commit `3cf3911`) and [erorplex/claude-desktop-profiles-macos](https://github.com/erorplex/claude-desktop-profiles-macos) (commit `ce248fe`), both MIT. The Swift implementation in `DesktopProfiles.swift` and `DesktopPanel.swift` is written independently; no source, artwork, or text is vendored. Credit appears in code comments and [docs/claude-desktop.md](claude-desktop.md).

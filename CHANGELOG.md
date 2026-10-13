@@ -7,6 +7,7 @@
 
 ## Unreleased
 
+- Claude desktop accounts: a Claude tab in the panel saves, adds, renames, deletes, and switches Claude desktop accounts. The app's data folder becomes a link to a per-account folder that a switch repoints atomically after Claude quits gracefully; nothing is copied, deleted, or force-quit. Design adapted from ajipurn/agent-profiles and erorplex/claude-desktop-profiles-macos (MIT); see docs/claude-desktop.md.
 - Fixed: after the ChatGPT app update of 2026-09-27 moved its bundled CLI to `Contents/Resources/codex-cli/bin/codex`, live reads were silently skipped and the menu bar froze on its last value. The CLI is now found at the new and old locations, or by searching the bundle.
 - Fixed: a monthly credit cap that stays reached until the 1st no longer shows as a blocked 0% once the weekly allowance resets; credit and blocked states apply only while a window is used up and not yet reset.
 - When live reads have not succeeded for five minutes, the menu bar item dims and shows `~` in every mode, and the tooltip and panel say why.

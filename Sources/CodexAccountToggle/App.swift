@@ -51,16 +51,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             let productPreview = CommandLine.arguments.contains("--product-preview")
             let expanded = !productPreview && CommandLine.arguments.contains("--settings-preview")
             let creditPreview = CommandLine.arguments.contains("--credit-preview")
+            let desktopPreview = CommandLine.arguments.contains("--desktop-preview")
             if creditPreview { model.applyCreditPreview() }
             let outputName: String
-            if creditPreview { outputName = "dist/credit-preview\(dark ? "-dark" : "")\(languageSuffix).png" }
+            if desktopPreview { outputName = "dist/desktop-preview\(dark ? "-dark" : "")\(languageSuffix).png" }
+            else if creditPreview { outputName = "dist/credit-preview\(dark ? "-dark" : "")\(languageSuffix).png" }
             else if blocked { outputName = "dist/quit-blocked\(languageSuffix).png" }
             else if productPreview { outputName = "dist/product-preview\(dark ? "-dark" : "")\(languageSuffix).png" }
             else if dark { outputName = "dist/demo-preview-dark\(languageSuffix).png" }
             else if state { outputName = "dist/demo-preview-error\(languageSuffix).png" }
             else if expanded { outputName = "dist/demo-preview-settings\(languageSuffix).png" }
             else { outputName = "dist/demo-preview\(languageSuffix).png" }
-            let hosting = NSHostingView(rootView: Panel(model: model, expanded: expanded, productPreview: productPreview).background(Color(nsColor: .windowBackgroundColor)))
+            let hosting = NSHostingView(rootView: Panel(model: model, expanded: expanded, productPreview: productPreview,
+                                                        tab: desktopPreview ? "claude" : "codex").background(Color(nsColor: .windowBackgroundColor)))
             // The panel sizes itself to its content; render exactly that.
             let size = hosting.fittingSize
             let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
@@ -151,6 +154,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if popover.isShown { popover.performClose(nil) }
         else if let button = item.button {
             model.refresh()
+            model.desktop.refresh()
             NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             // A menu-bar-only app does not receive clicks made in other apps, so a transient
@@ -285,6 +289,8 @@ final class Model: ObservableObject {
     let isDemo: Bool
     let lifecycle: AppLifecycle
     let coordinator: SwitchCoordinator
+    /// Claude desktop accounts, shown on the panel's Claude tab.
+    let desktop: DesktopModel
     static let liveModeKey = "liveMode"
     init() {
         // A fresh install starts in demo mode. An explicit `--live` (or the gear-menu switch) is
@@ -308,6 +314,7 @@ final class Model: ObservableObject {
             lifecycle = CodexLifecycle()
         }
         coordinator = SwitchCoordinator(store: store, lifecycle: lifecycle)
+        desktop = DesktopModel(isDemo: isDemo)
         if isDemo { message = L10n.text("샘플 계정을 클릭해 보세요. 실제 Codex와 로그인에는 접근하지 않습니다.") }
         refresh()
         if isDemo {

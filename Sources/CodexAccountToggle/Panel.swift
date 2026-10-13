@@ -10,7 +10,7 @@ enum PanelLayout {
 
 enum NoticeKind { case neutral, success, error }
 
-private enum Palette {
+enum Palette {
     static let accent = Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(red: 0.40, green: 0.85, blue: 0.73, alpha: 1) : NSColor(red: 0.08, green: 0.43, blue: 0.35, alpha: 1) })
     static let canvas = Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(red: 0.12, green: 0.13, blue: 0.14, alpha: 1) : NSColor(red: 0.97, green: 0.97, blue: 0.96, alpha: 1) })
     static let line = Color.primary.opacity(0.08)
@@ -27,9 +27,14 @@ struct Panel: View {
     private let productPreview: Bool
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("weeklyFirst") private var weeklyFirst = true
-    init(model: Model, expanded: Bool = false, productPreview: Bool = false) {
+    @AppStorage("panelTab") private var storedTab = "codex"
+    /// Offscreen renders pick a tab without touching the saved preference.
+    private let tabOverride: String?
+    private var tab: String { tabOverride ?? storedTab }
+    init(model: Model, expanded: Bool = false, productPreview: Bool = false, tab: String? = nil) {
         self.model = model
         self.productPreview = productPreview && model.isDemo && CommandLine.arguments.contains("--render-preview")
+        self.tabOverride = tab
     }
     private var active: Profile? { model.profiles.first { $0.id == model.current } }
     private var others: [Profile] { model.profiles.filter { $0.id != model.current } }
@@ -37,6 +42,28 @@ struct Panel: View {
     var body: some View {
         VStack(spacing: 0) {
             if model.isDemo && !productPreview { demoStrip }
+            tabPicker
+            if tab == "claude" { DesktopSection(model: model.desktop) } else { codexContent }
+            Divider()
+            footer
+        }
+        .frame(width: PanelLayout.width)
+        .background(Palette.canvas)
+        .tint(Palette.accent)
+    }
+
+    private var tabPicker: some View {
+        Picker("", selection: Binding(get: { tab }, set: { storedTab = $0 })) {
+            Text("Codex").tag("codex")
+            Text("Claude").tag("claude")
+        }
+        .pickerStyle(.segmented).labelsHidden()
+        .padding(.horizontal, 12).padding(.top, 8).padding(.bottom, 6)
+        .disabled(tabOverride != nil)
+    }
+
+    @ViewBuilder private var codexContent: some View {
+        VStack(spacing: 0) {
             if let active { currentRow(active) } else { emptyCurrent }
             Divider()
             if others.isEmpty {
@@ -47,12 +74,7 @@ struct Panel: View {
                 ScrollView { rows }.frame(height: CGFloat(PanelLayout.maxVisibleRows) * PanelLayout.rowHeight + 8)
             } else { rows }
             if model.busy || model.loginInProgress || model.recovery || model.notice == .error { notice }
-            Divider()
-            footer
         }
-        .frame(width: PanelLayout.width)
-        .background(Palette.canvas)
-        .tint(Palette.accent)
     }
 
     private var demoStrip: some View {
@@ -275,7 +297,14 @@ struct Panel: View {
 
     private var footer: some View {
         HStack(spacing: 2) {
-            if !model.isDemo || productPreview {
+            if tab == "claude" {
+                Menu {
+                    Button(L10n.text("다른 Claude 계정으로 로그인…"), action: model.desktop.addAccount)
+                } label: {
+                    Label(L10n.text("계정 추가"), systemImage: "plus").font(.system(size: 12.5)).padding(.horizontal, 2)
+                }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().foregroundStyle(.secondary)
+                    .disabled(model.desktop.busy || !model.desktop.installed)
+            } else if !model.isDemo || productPreview {
                 Menu {
                     Button(L10n.text("다른 계정으로 로그인…"), action: model.loginAnotherAccount)
                     Button(L10n.text("현재 로그인 계정 추가"), action: model.saveCurrent)
@@ -286,7 +315,7 @@ struct Panel: View {
                     .help(L10n.text("다른 계정으로 로그인…")).disabled(model.busy || model.loginInProgress)
             }
             Spacer(minLength: 0)
-            Button { model.refresh(); model.refreshLiveUsage(force: true) } label: {
+            Button { model.refresh(); model.refreshLiveUsage(force: true); model.desktop.refresh() } label: {
                 Image(systemName: "arrow.clockwise").font(.system(size: 12.5)).frame(width: 24, height: 24)
             }.buttonStyle(.plain).help(L10n.text("계정 새로고침")).accessibilityLabel(L10n.text("계정 새로고침")).disabled(model.busy)
             Menu {
@@ -315,7 +344,7 @@ struct Panel: View {
     }
 }
 
-private struct RowButtonStyle: ButtonStyle {
+struct RowButtonStyle: ButtonStyle {
     @State private var hovered = false
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
