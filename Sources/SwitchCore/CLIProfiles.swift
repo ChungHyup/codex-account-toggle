@@ -88,12 +88,20 @@ public final class CLIProfileStore {
         try writeIndex(try profiles().filter { $0.id != id })
     }
     /// The signed-in email Claude Code recorded for an account, for display only.
-    public func email(of id: String?) -> String? {
+    public func email(of id: String?) -> String? { oauthAccount(of: id)?["emailAddress"] as? String }
+    /// The account and organization ids Claude Code recorded, used to match desktop usage records.
+    public func account(of id: String?) -> (account: String, org: String?)? {
+        guard let account = oauthAccount(of: id), let uuid = account["accountUuid"] as? String, !uuid.isEmpty else { return nil }
+        return (uuid, account["organizationUuid"] as? String)
+    }
+    /// The config folder Claude Code uses for an account (`~/.claude` for the default one).
+    public func configFolder(of id: String?) -> URL? { id == nil ? defaultConfig : try? folder(for: id!) }
+    /// Reads only the `oauthAccount` profile fields; Claude Code keeps no tokens in this file.
+    private func oauthAccount(of id: String?) -> [String: Any]? {
         let state = id.flatMap { try? folder(for: $0).appendingPathComponent(".claude.json") } ?? defaultState
         guard let data = try? Data(contentsOf: state),
-              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let account = object["oauthAccount"] as? [String: Any] else { return nil }
-        return account["emailAddress"] as? String
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return object["oauthAccount"] as? [String: Any]
     }
 
     public var shimInstalled: Bool { (try? String(contentsOf: shim, encoding: .utf8)) == Self.shimScript }

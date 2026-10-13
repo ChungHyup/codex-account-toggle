@@ -87,6 +87,10 @@ public final class DesktopProfileStore {
         return value("config.json", "lastKnownAccountUuid") ?? value("cowork-enabled-cli-ops.json", "ownerAccountId")
     }
     public var liveAccountID: String? { accountID(inFolder: active) }
+    /// When this app last pointed the data folder at an account. Nil before the first switch.
+    public var lastSwitch: Date? {
+        (try? FileManager.default.attributesOfItem(atPath: lastLinked.path))?[.modificationDate] as? Date
+    }
     public func accountID(ofProfile id: String) -> String? { (try? folder(for: id)).flatMap(accountID(inFolder:)) }
 
     public func profiles() throws -> [DesktopProfile] {
