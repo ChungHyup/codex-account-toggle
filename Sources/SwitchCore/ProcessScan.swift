@@ -19,6 +19,25 @@ public enum ProcessScan {
             return CodexProcess(pid: pid, path: path)
         }
     }
+    /// Every process as pid and executable path.
+    public static func all(in text: String) -> [CodexProcess] {
+        text.split(separator: "\n").compactMap { line in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard let space = trimmed.firstIndex(of: " "), let pid = Int32(trimmed[..<space]) else { return nil }
+            return CodexProcess(pid: pid, path: trimmed[trimmed.index(after: space)...].trimmingCharacters(in: .whitespaces))
+        }
+    }
+    /// Processes that keep Claude desktop's data folder busy: the app and its helpers, and Claude Code
+    /// binaries it runs from inside the data folder. The Chrome bridge helper is started by Chrome and
+    /// does not use the data folder, so it never blocks a switch.
+    public static func claudeDesktopBlockers(_ processes: [CodexProcess], appPath: String, dataFolder: String) -> [CodexProcess] {
+        let app = appPath.hasSuffix("/") ? appPath : appPath + "/"
+        let data = dataFolder.hasSuffix("/") ? dataFolder : dataFolder + "/"
+        return processes.filter { process in
+            if process.path.hasPrefix(app) { return !process.path.hasPrefix(app + "Contents/Helpers/chrome-native-host") }
+            return process.path.hasPrefix(data)
+        }
+    }
     /// Leftovers of a quit desktop app: every remaining process lives inside its bundle.
     /// A CLI session outside the bundle means "not orphans", so the user's own work is never touched.
     public static func orphans(_ processes: [CodexProcess], insideBundle bundlePath: String) -> [CodexProcess]? {
