@@ -105,6 +105,14 @@ public final class CLIProfileStore {
     }
 
     public var shimInstalled: Bool { (try? String(contentsOf: shim, encoding: .utf8)) == Self.shimScript }
+    /// Rewrites a shim an earlier version of this app installed (same folder, older text), so an app update
+    /// or rename never leaves the terminal setup looking broken. Files this app did not write are left alone.
+    @discardableResult
+    public func upgradeShimIfOutdated() -> Bool {
+        guard let text = try? String(contentsOf: shim, encoding: .utf8), text != Self.shimScript,
+              text.hasPrefix("#!/bin/sh\n"), text.contains("CLAUDE_CONFIG_DIR=\"$base/profiles/$id\"") else { return false }
+        return (try? installShim()) != nil
+    }
     public func installShim() throws {
         try FileManager.default.createDirectory(at: shim.deletingLastPathComponent(), withIntermediateDirectories: true)
         try Data(Self.shimScript.utf8).write(to: shim, options: .atomic)

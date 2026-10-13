@@ -78,4 +78,16 @@ final class CLIProfileTests: XCTestCase {
         try (store.pathLine + "\n").write(to: home.appendingPathComponent(".zshrc"), atomically: true, encoding: .utf8)
         XCTAssertTrue(store.pathConfigured(home: home))
     }
+
+    func testOutdatedShimIsUpgradedButForeignFileIsNot() throws {
+        try store.installShim()
+        let old = CLIProfileStore.shimScript.replacingOccurrences(of: "# Pinch Hitter:", with: "# Codex Account Toggle:")
+        try Data(old.utf8).write(to: store.shim)
+        XCTAssertFalse(store.shimInstalled)
+        XCTAssertTrue(store.upgradeShimIfOutdated())
+        XCTAssertTrue(store.shimInstalled)
+        try Data("#!/bin/sh\nexec something-else\n".utf8).write(to: store.shim)
+        XCTAssertFalse(store.upgradeShimIfOutdated())
+        XCTAssertEqual(try String(contentsOf: store.shim, encoding: .utf8), "#!/bin/sh\nexec something-else\n")
+    }
 }

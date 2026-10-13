@@ -314,6 +314,7 @@ final class CLIModel: ObservableObject {
         activeID = store.activeID
         defaultEmail = store.email(of: nil)
         emails = Dictionary(uniqueKeysWithValues: profiles.compactMap { p in store.email(of: p.id).map { (p.id, $0) } })
+        store.upgradeShimIfOutdated()
         shimInstalled = store.shimInstalled
         pathConfigured = isDemo || store.pathConfigured(home: home)
     }
