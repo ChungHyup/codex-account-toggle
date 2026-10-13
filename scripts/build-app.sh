@@ -17,7 +17,7 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>CodexAccountToggle</string>
-<key>CFBundleIdentifier</key><string>com.chunghyup.codex-account-toggle</string>
+<key>CFBundleIdentifier</key><string>com.chunghyup.pinch-hitter</string>
 <key>CFBundleName</key><string>Pinch Hitter</string>
 <key>CFBundleDisplayName</key><string>Pinch Hitter</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>

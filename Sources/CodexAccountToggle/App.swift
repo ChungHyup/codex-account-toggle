@@ -111,9 +111,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             return
         }
         // A previous-name instance may still be open; never terminate or run alongside it.
-        let peers = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "com.chunghyup.codex-account-toggle")
-        let legacyPeers = NSRunningApplication.runningApplications(withBundleIdentifier: "local.codexswitch.menubar")
-        if peers.count > 1 || !legacyPeers.isEmpty { NSApp.terminate(nil); return }
+        let peers = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "com.chunghyup.pinch-hitter")
+        if peers.count > 1 { NSApp.terminate(nil); return }
+        let legacyPeers = [PreferencesMigration.legacyBundleID, "local.codexswitch.menubar"]
+            .flatMap { NSRunningApplication.runningApplications(withBundleIdentifier: $0) }
+            .filter { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }
+        if !legacyPeers.isEmpty {
+            let alert = NSAlert()
+            alert.messageText = L10n.text("이전 이름의 앱이 실행 중입니다")
+            alert.informativeText = L10n.text("메뉴 막대의 Codex Account Toggle을 먼저 종료한 뒤 Pinch Hitter를 다시 여세요. 두 앱이 함께 실행되면 계정 전환이 겹칠 수 있습니다.")
+            alert.addButton(withTitle: L10n.text("닫기"))
+            NSApp.activate(ignoringOtherApps: true)
+            alert.runModal()
+            NSApp.terminate(nil); return
+        }
         NSApp.setActivationPolicy(.accessory)
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Pinch Hitter")
@@ -303,6 +314,8 @@ final class Model: ObservableObject {
         if arguments.contains("--render-preview") {
             isDemo = true // Do not read or change the owner's mode while rendering fixtures.
         } else {
+            // The app was renamed with a new bundle identifier; bring the earlier preferences along once.
+            PreferencesMigration.run()
             if arguments.contains("--demo") { UserDefaults.standard.removeObject(forKey: Model.liveModeKey) }
             else if arguments.contains("--live"), !arguments.contains("--usage-check") { UserDefaults.standard.set(true, forKey: Model.liveModeKey) }
             isDemo = !(arguments.contains("--live") || (UserDefaults.standard.bool(forKey: Model.liveModeKey) && !arguments.contains("--demo")))
