@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 version="0.2.0-beta.1"
-app="dist/Codex Account Toggle.app"
+app="dist/Pinch Hitter.app"
 codesign --verify --strict "$app"
 architectures=$(lipo -archs "$app/Contents/MacOS/CodexAccountToggle")
 if [[ "$architectures" != *arm64* || "$architectures" != *x86_64* ]]; then
@@ -11,13 +11,13 @@ if [[ "$architectures" != *arm64* || "$architectures" != *x86_64* ]]; then
 fi
 stage=$(mktemp -d "${TMPDIR:-/tmp}/cat-dmg.XXXXXX")
 trap 'rm -rf "$stage"' EXIT
-ditto "$app" "$stage/Codex Account Toggle.app"
+ditto "$app" "$stage/Pinch Hitter.app"
 ln -s /Applications "$stage/Applications"
 cp LICENSE "$stage/LICENSE.txt"
 cat > "$stage/INSTALL.txt" <<'TXT'
-Codex Account Toggle — 0.2.0 beta 1
+Pinch Hitter — 0.2.0 beta 1
 
-Drag Codex Account Toggle.app into Applications, then open it.
+Drag Pinch Hitter.app into Applications, then open it.
 Fresh installs start in demo mode. Live mode is remembered if you enabled it previously.
 Requires macOS 13+; Apple Silicon and Intel code are included.
 Real account switching requires the Codex desktop app.
@@ -31,8 +31,8 @@ DMG를 열고 앱을 Applications로 드래그하세요.
 
 Guide: https://github.com/ChungHyup/codex-account-toggle
 TXT
-output="dist/Codex-Account-Toggle-${version}-universal.dmg"
-hdiutil create -volname 'Codex Account Toggle' -srcfolder "$stage" -format UDZO -ov "$output"
+output="dist/Pinch-Hitter-${version}-universal.dmg"
+hdiutil create -volname 'Pinch Hitter' -srcfolder "$stage" -format UDZO -ov "$output"
 hdiutil verify "$output"
-(cd dist && shasum -a 256 "Codex-Account-Toggle-${version}-universal.dmg" > SHA256SUMS.txt)
+(cd dist && shasum -a 256 "Pinch-Hitter-${version}-universal.dmg" > SHA256SUMS.txt)
 echo "Packaged: $output"

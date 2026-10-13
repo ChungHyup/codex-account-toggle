@@ -1,4 +1,4 @@
-# Codex Account Toggle UI / UX
+# Pinch Hitter UI / UX
 
 ## 컨셉: 조용하고 선명한 계정 스위처
 

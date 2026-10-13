@@ -7,7 +7,7 @@ final class ProcessScanTests: XCTestCase {
       102 /Applications/ChatGPT.app/Contents/Resources/codex-code-mode-host
       103 /Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/1/Helpers/Codex (Renderer).app/Contents/MacOS/Codex (Renderer)
       104 /usr/bin/login
-      105 /Users/me/projects/codex-account-toggle/dist/Codex Account Toggle.app/Contents/MacOS/CodexAccountToggle
+      105 /Users/me/projects/codex-account-toggle/dist/Pinch Hitter.app/Contents/MacOS/CodexAccountToggle
     """
     func testFindsOnlyCodexExecutables() {
         let found = ProcessScan.codexProcesses(in: sample)

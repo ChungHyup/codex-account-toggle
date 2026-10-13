@@ -37,6 +37,12 @@ The app, executable, Swift package/target, resource bundle, bundle identifier, b
 
 The existing `Library/Application Support/CodexSwitch` profile path is deliberately preserved. This rename does not inspect or migrate credentials. The new bundle identifier is `com.chunghyup.codex-account-toggle`; preferences under the old identifier are not migrated. An already running old-name app prevents a second normal instance from starting; the old process is never terminated. The local checkout directory remains unchanged. The owner subsequently authorized a private `ChungHyup/codex-account-toggle` repository for MacBook QA; public visibility remains deferred.
 
+### Rename to Pinch Hitter (2026-10-13)
+
+With Claude desktop and Claude Code switching added, the Codex-only name no longer described the app. The owner selected **Pinch Hitter** after a name search: no Mac app, Homebrew cask, or AI-tool repository uses it. Rejected candidates: `Baton` (several active AI-agent projects, including session-handoff tools), `Switchboard` (an existing Mac App Store app), `Bullpen` and `Understudy` (existing AI-agent projects). The name avoids the Codex and Claude marks; supported apps are named only in descriptions.
+
+Only user-visible names changed: the app bundle name and display name, the built app and DMG file names, the banner, menus, and docs. The bundle identifier `com.chunghyup.codex-account-toggle`, the Swift package and executable names, and every storage path (`Library/Application Support/CodexSwitch`, `~/.codex-account-toggle`) stay the same, so saved accounts, the live-mode preference, and the terminal PATH line keep working. The published `v0.2.0-beta.1` DMG keeps its original name, and the install steps for it still say Codex Account Toggle until the next release.
+
 ## Claude desktop switching references (2026-10-13)
 
 The Claude desktop switcher adapts designs from [ajipurn/agent-profiles](https://github.com/ajipurn/agent-profiles) (commit `3cf3911`) and [erorplex/claude-desktop-profiles-macos](https://github.com/erorplex/claude-desktop-profiles-macos) (commit `ce248fe`), both MIT. The Swift implementation in `DesktopProfiles.swift` and `DesktopPanel.swift` is written independently; no source, artwork, or text is vendored. Credit appears in code comments and [docs/claude-desktop.md](claude-desktop.md).

@@ -37,10 +37,8 @@
   "로컬 저장": "Stored locally",
   "계정 새로고침": "Refresh accounts",
   "로그인 파일 가져오기…": "Import sign-in file…",
-  "Codex Account Toggle 종료": "Quit Codex Account Toggle",
   "앱 설정": "App settings",
   "전환 실패로 이전 로그인을 복구했습니다.": "Switch failed. Your previous sign-in was restored.",
-  "Codex Account Toggle · 데모": "Codex Account Toggle · Demo",
   "현재 로그인한 계정을 저장해 시작하세요.": "Save your signed-in account to get started.",
   "데모 작업 폴더를 만들 수 없습니다. 실제 계정에 접근하지 않고 종료합니다.": "Cannot create the demo workspace. Exiting without accessing real accounts.",
   "샘플 계정을 클릭해 보세요. 실제 Codex와 로그인에는 접근하지 않습니다.": "Choose a demo account. Your real Codex session is not accessed.",
@@ -231,5 +229,7 @@
   "주간 초기화 시각 설정…": "Set weekly reset time…",
   "5시간 %@ 남음": "5h %@ left",
   "주간 %@ 남음": "Week %@ left",
-  "~%@ 초기화": "resets ~%@"
+  "~%@ 초기화": "resets ~%@",
+  "Pinch Hitter 종료": "Quit Pinch Hitter",
+  "Pinch Hitter · 데모": "Pinch Hitter · Demo"
 }

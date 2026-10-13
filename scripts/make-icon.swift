@@ -1,4 +1,4 @@
-// Generates the original Codex Account Toggle icon from vector geometry.
+// Generates the original Pinch Hitter icon from vector geometry.
 // Run from the repository root: swift scripts/make-icon.swift
 import AppKit
 

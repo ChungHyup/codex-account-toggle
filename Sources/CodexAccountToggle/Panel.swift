@@ -341,7 +341,7 @@ struct Panel: View {
                 }
                 Divider()
                 Button(model.isDemo ? L10n.text("실제 계정 모드로 전환 (재실행)") : L10n.text("데모 모드로 전환 (재실행)")) { model.switchMode(toLive: model.isDemo) }
-                Button(L10n.text("Codex Account Toggle 종료")) { NSApp.terminate(nil) }
+                Button(L10n.text("Pinch Hitter 종료")) { NSApp.terminate(nil) }
             } label: { Image(systemName: "gearshape").font(.system(size: 12.5)).frame(width: 24, height: 24) }
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
                 .help(L10n.text("앱 설정")).accessibilityLabel(L10n.text("앱 설정")).disabled(model.busy)

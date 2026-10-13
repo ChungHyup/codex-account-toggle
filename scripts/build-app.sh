@@ -5,7 +5,7 @@ build_args=(-c release --disable-sandbox)
 if [[ "${UNIVERSAL:-0}" == 1 ]]; then build_args+=(--arch arm64 --arch x86_64); fi
 swift build "${build_args[@]}"
 bin_dir=$(swift build "${build_args[@]}" --show-bin-path)
-app="dist/Codex Account Toggle.app"
+app="dist/Pinch Hitter.app"
 mkdir -p "$app/Contents/MacOS"
 cp "$bin_dir/CodexAccountToggle" "$app/Contents/MacOS/CodexAccountToggle"
 mkdir -p "$app/Contents/Resources"
@@ -18,7 +18,8 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>CodexAccountToggle</string>
 <key>CFBundleIdentifier</key><string>com.chunghyup.codex-account-toggle</string>
-<key>CFBundleName</key><string>Codex Account Toggle</string>
+<key>CFBundleName</key><string>Pinch Hitter</string>
+<key>CFBundleDisplayName</key><string>Pinch Hitter</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>0.2.0</string>

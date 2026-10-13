@@ -116,7 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if peers.count > 1 || !legacyPeers.isEmpty { NSApp.terminate(nil); return }
         NSApp.setActivationPolicy(.accessory)
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Account Toggle")
+        item.button?.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Pinch Hitter")
         item.button?.target = self
         item.button?.action = #selector(toggle)
         model.$usage.combineLatest(model.$current, model.$menuUsageEnabled, model.$creditBurning)
@@ -142,7 +142,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if CommandLine.arguments.contains("--window") && model.isDemo {
             let hosting = NSHostingView(rootView: Panel(model: model))
             let window = NSWindow(contentRect: NSRect(origin: .zero, size: hosting.fittingSize), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.title = L10n.text("Codex Account Toggle · 데모")
+            window.title = L10n.text("Pinch Hitter · 데모")
             window.contentView = hosting
             window.center()
             window.makeKeyAndOrderFront(nil)
@@ -180,7 +180,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             return
         }
         stopPulse()
-        button.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Codex Account Toggle")
+        button.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Pinch Hitter")
         guard model.menuUsageEnabled else { button.title = ""; button.toolTip = staleNote.isEmpty ? nil : staleNote; return }
         let window = snapshot?.preferredWindow
         let remaining = window?.resetPassed(at: Date()) == true ? nil : window?.remainingPercent

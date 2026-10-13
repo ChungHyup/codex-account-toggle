@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/brand/banner.svg" alt="Codex Account Toggle — Your accounts. One menu." width="100%"></p>
+<p align="center"><img src="docs/brand/banner.svg" alt="Pinch Hitter — Your accounts. One menu." width="100%"></p>
 
 <p align="center">
   <a href="https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1"><b>macOS 다운로드</b></a> ·
@@ -13,7 +13,9 @@
   <a href="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
-여러 Codex 계정을 사용하는 개발자를 위한 작은 macOS 메뉴바 앱입니다. 개인·업무 계정을 모아두고, 남은 사용량을 확인한 뒤 필요한 계정으로 전환하세요.
+여러 Codex·Claude 계정을 쓰는 개발자를 위한 작은 macOS 메뉴바 앱입니다. 한 계정의 사용량이 바닥나면 대타(pinch hitter)를 내보내세요. 개인·업무 계정을 모아두고 남은 사용량을 확인한 뒤, Codex·Claude 데스크톱·터미널 Claude Code를 클릭 한 번으로 전환합니다.
+
+*이전 이름: Codex Account Toggle*
 
 **로그아웃을 반복하지 않고, 메뉴바에서 계정을 선택하세요.**
 
@@ -80,7 +82,7 @@ git clone https://github.com/ChungHyup/codex-account-toggle.git
 cd codex-account-toggle
 swift test --disable-sandbox
 bash scripts/build-app.sh
-open 'dist/Codex Account Toggle.app'
+open 'dist/Pinch Hitter.app'
 ```
 
 전체 Xcode가 설치된 환경에서 universal DMG를 만들려면:

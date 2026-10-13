@@ -122,7 +122,7 @@ public final class CLIProfileStore {
     /// Then the first `claude` on PATH that is not this shim runs with the same arguments.
     public static let shimScript = """
     #!/bin/sh
-    # Codex Account Toggle: runs `claude` as the terminal account picked in the menu bar app.
+    # Pinch Hitter: runs `claude` as the terminal account picked in the menu bar app.
     base=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
     if [ -z "${CLAUDE_CONFIG_DIR:-}" ] && [ -f "$base/active" ]; then
       id=$(head -n 1 "$base/active" 2>/dev/null)
@@ -141,7 +141,7 @@ public final class CLIProfileStore {
         exec "$candidate" "$@"
       fi
     done
-    echo "claude (Codex Account Toggle): the real claude was not found on PATH" >&2
+    echo "claude (Pinch Hitter): the real claude was not found on PATH" >&2
     exit 127
 
     """

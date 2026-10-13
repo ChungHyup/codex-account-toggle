@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/brand/banner.svg" alt="Codex Account Toggle — Your accounts. One menu." width="100%"></p>
+<p align="center"><img src="docs/brand/banner.svg" alt="Pinch Hitter — Your accounts. One menu." width="100%"></p>
 
 <p align="center">
   <a href="https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1"><b>Download for macOS</b></a> ·
@@ -13,7 +13,9 @@
   <a href="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
-A small, native menu-bar app for people who use more than one Codex account. Keep personal and work accounts close, check the available quota, and choose the account you want to use next.
+A small, native menu-bar app for people who use more than one Codex or Claude account. When one account runs out, send in a pinch hitter: keep personal and work accounts close, check what each has left, and switch Codex, Claude desktop, or terminal Claude Code with a click.
+
+*Formerly Codex Account Toggle.*
 
 **No dashboard to manage. No logout routine to repeat. Just your accounts, one click away.**
 
@@ -82,7 +84,7 @@ git clone https://github.com/ChungHyup/codex-account-toggle.git
 cd codex-account-toggle
 swift test --disable-sandbox
 bash scripts/build-app.sh
-open 'dist/Codex Account Toggle.app'
+open 'dist/Pinch Hitter.app'
 ```
 
 To build a universal DMG with full Xcode installed:
