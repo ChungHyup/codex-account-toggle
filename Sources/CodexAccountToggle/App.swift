@@ -155,6 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         else if let button = item.button {
             model.refresh()
             model.desktop.refresh()
+            model.cli.refresh()
             NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             // A menu-bar-only app does not receive clicks made in other apps, so a transient
@@ -291,6 +292,8 @@ final class Model: ObservableObject {
     let coordinator: SwitchCoordinator
     /// Claude desktop accounts, shown on the panel's Claude tab.
     let desktop: DesktopModel
+    /// Terminal Claude Code accounts, also on the Claude tab.
+    let cli: CLIModel
     static let liveModeKey = "liveMode"
     init() {
         // A fresh install starts in demo mode. An explicit `--live` (or the gear-menu switch) is
@@ -315,6 +318,7 @@ final class Model: ObservableObject {
         }
         coordinator = SwitchCoordinator(store: store, lifecycle: lifecycle)
         desktop = DesktopModel(isDemo: isDemo)
+        cli = CLIModel(isDemo: isDemo)
         if isDemo { message = L10n.text("샘플 계정을 클릭해 보세요. 실제 Codex와 로그인에는 접근하지 않습니다.") }
         refresh()
         if isDemo {

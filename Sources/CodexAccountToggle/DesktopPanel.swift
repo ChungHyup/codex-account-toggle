@@ -180,6 +180,8 @@ struct DesktopSection: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            Text(L10n.text("Claude 데스크톱")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 12).padding(.top, 2).padding(.bottom, 4)
             current
             Divider()
             if !model.installed {
@@ -264,5 +266,155 @@ struct DesktopSection: View {
         }.foregroundStyle(model.notice == .error ? Palette.warning : Palette.accent)
             .padding(.horizontal, 12).padding(.vertical, 7).frame(maxWidth: .infinity, alignment: .leading)
             .background((model.notice == .error ? Palette.warning : Palette.accent).opacity(0.07))
+    }
+}
+
+/// Terminal Claude Code accounts. Switching is instant and applies to `claude` commands started afterwards.
+@MainActor
+final class CLIModel: ObservableObject {
+    @Published var profiles: [CLIProfile] = []
+    @Published var activeID: String?
+    @Published var emails: [String: String] = [:]
+    @Published var defaultEmail: String?
+    @Published var shimInstalled = false
+    @Published var pathConfigured = false
+    @Published var message = ""
+    let isDemo: Bool
+    let store: CLIProfileStore
+    private let home: URL
+
+    init(isDemo: Bool) {
+        self.isDemo = isDemo
+        if isDemo {
+            do { store = try CLIDemoWorkspace.make() }
+            catch { fatalError(L10n.text("데모 작업 폴더를 만들 수 없습니다. 실제 계정에 접근하지 않고 종료합니다.")) }
+            home = store.defaultConfig.deletingLastPathComponent()
+        } else {
+            home = FileManager.default.homeDirectoryForCurrentUser
+            store = CLIProfileStore(base: home.appendingPathComponent(".codex-account-toggle/claude-cli"), home: home)
+        }
+        refresh()
+    }
+
+    var ready: Bool { shimInstalled && pathConfigured }
+
+    func refresh() {
+        profiles = (try? store.profiles()) ?? []
+        activeID = store.activeID
+        defaultEmail = store.email(of: nil)
+        emails = Dictionary(uniqueKeysWithValues: profiles.compactMap { p in store.email(of: p.id).map { (p.id, $0) } })
+        shimInstalled = store.shimInstalled
+        pathConfigured = isDemo || store.pathConfigured(home: home)
+    }
+    func select(_ id: String?) {
+        do {
+            try store.setActive(id)
+            message = L10n.text("새로 여는 터미널의 claude부터 이 계정을 씁니다.")
+        } catch { message = (error as? SwitchError)?.errorDescription ?? "" }
+        refresh()
+    }
+    func add() {
+        let alert = NSAlert()
+        alert.messageText = L10n.text("새 터미널 Claude 계정 이름")
+        alert.informativeText = L10n.text("새 계정 폴더를 만들고 선택합니다. 새 터미널에서 claude를 처음 실행하면 이 계정으로 한 번 로그인합니다.")
+        let field = NSTextField(string: L10n.text("새 Claude 계정"))
+        field.frame = NSRect(x: 0, y: 0, width: 260, height: 24)
+        alert.accessoryView = field
+        alert.addButton(withTitle: L10n.text("저장"))
+        alert.addButton(withTitle: L10n.text("취소"))
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do {
+            let id = try store.create(name: field.stringValue)
+            try store.setActive(id)
+            if !ready { setUp() } else { message = L10n.text("새 터미널에서 claude를 실행해 로그인하세요.") }
+        } catch { message = (error as? SwitchError)?.errorDescription ?? "" }
+        refresh()
+    }
+    /// Installs the shim in this app's own folder and shows the PATH line; shell files are never edited.
+    func setUp() {
+        do { try store.installShim() } catch { message = L10n.text("CLI 전환 도구를 설치하지 못했습니다."); return }
+        refresh()
+        guard !pathConfigured else { return }
+        let alert = NSAlert()
+        alert.messageText = L10n.text("터미널 설정 한 줄이 필요합니다")
+        alert.informativeText = L10n.text("아래 줄을 ~/.zshrc 끝에 추가하고 새 터미널을 여세요. 이 앱은 셸 설정 파일을 직접 고치지 않습니다.") + "\n\n" + store.pathLine
+        alert.addButton(withTitle: L10n.text("복사"))
+        alert.addButton(withTitle: L10n.text("닫기"))
+        NSApp.activate(ignoringOtherApps: true)
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(store.pathLine, forType: .string)
+        }
+    }
+    func rename(_ profile: CLIProfile) {
+        let alert = NSAlert()
+        alert.messageText = L10n.text("계정 이름 변경")
+        let field = NSTextField(string: profile.name)
+        field.frame = NSRect(x: 0, y: 0, width: 260, height: 24)
+        alert.accessoryView = field
+        alert.addButton(withTitle: L10n.text("저장"))
+        alert.addButton(withTitle: L10n.text("취소"))
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        try? store.rename(profile.id, to: field.stringValue)
+        refresh()
+    }
+    func delete(_ profile: CLIProfile) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L10n.format("‘%@’ 저장본을 삭제할까요?", profile.name)
+        alert.informativeText = L10n.text("이 계정의 설정 폴더를 휴지통으로 옮깁니다. 선택돼 있었다면 기본 계정(~/.claude)으로 돌아갑니다.")
+        alert.addButton(withTitle: L10n.text("취소"))
+        alert.addButton(withTitle: L10n.text("삭제"))
+        alert.buttons[1].hasDestructiveAction = true
+        guard alert.runModal() == .alertSecondButtonReturn else { return }
+        try? store.remove(profile.id)
+        refresh()
+    }
+}
+
+struct CLISection: View {
+    @ObservedObject var model: CLIModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text(L10n.text("터미널 Claude")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(.secondary)
+                Spacer()
+                if !model.ready {
+                    Button(L10n.text("설정…"), action: model.setUp).buttonStyle(.link).font(.system(size: 11.5))
+                }
+            }.padding(.horizontal, 12).padding(.top, 8).padding(.bottom, 2)
+            row(id: nil, name: L10n.text("기본 계정"), email: model.defaultEmail, profile: nil)
+            ForEach(model.profiles) { row(id: $0.id, name: $0.name, email: model.emails[$0.id], profile: $0) }
+            if !model.ready {
+                Text(L10n.text("설정 후 새로 여는 터미널의 claude에 적용됩니다."))
+                    .font(.system(size: 11)).foregroundStyle(Palette.warning).padding(.horizontal, 12).padding(.bottom, 6)
+            }
+        }.padding(.bottom, 4)
+    }
+
+    private func row(id: String?, name: String, email: String?, profile: CLIProfile?) -> some View {
+        let selected = model.activeID == id
+        return Button { model.select(id) } label: {
+            HStack(spacing: 8) {
+                Image(systemName: selected ? "largecircle.fill.circle" : "circle")
+                    .font(.system(size: 12)).foregroundStyle(selected ? Palette.accent : .secondary)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(name).font(.system(size: 13, weight: selected ? .semibold : .regular)).foregroundStyle(.primary).lineLimit(1)
+                    Text(email ?? L10n.text("로그인 전")).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer(minLength: 6)
+            }.padding(.horizontal, 12).padding(.vertical, 5).contentShape(Rectangle())
+        }
+        .buttonStyle(RowButtonStyle())
+        .help(L10n.text("새로 여는 터미널의 claude에 이 계정을 씁니다"))
+        .contextMenu {
+            if let profile {
+                Button(L10n.text("이름 변경…")) { model.rename(profile) }
+                Divider()
+                Button(L10n.text("계정 삭제…")) { model.delete(profile) }
+            }
+        }
     }
 }

@@ -43,7 +43,11 @@ struct Panel: View {
         VStack(spacing: 0) {
             if model.isDemo && !productPreview { demoStrip }
             tabPicker
-            if tab == "claude" { DesktopSection(model: model.desktop) } else { codexContent }
+            if tab == "claude" {
+                DesktopSection(model: model.desktop)
+                Divider()
+                CLISection(model: model.cli)
+            } else { codexContent }
             Divider()
             footer
         }
@@ -300,10 +304,11 @@ struct Panel: View {
             if tab == "claude" {
                 Menu {
                     Button(L10n.text("다른 Claude 계정으로 로그인…"), action: model.desktop.addAccount)
+                        .disabled(model.desktop.busy || !model.desktop.installed)
+                    Button(L10n.text("터미널 Claude 계정 추가…"), action: model.cli.add)
                 } label: {
                     Label(L10n.text("계정 추가"), systemImage: "plus").font(.system(size: 12.5)).padding(.horizontal, 2)
                 }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().foregroundStyle(.secondary)
-                    .disabled(model.desktop.busy || !model.desktop.installed)
             } else if !model.isDemo || productPreview {
                 Menu {
                     Button(L10n.text("다른 계정으로 로그인…"), action: model.loginAnotherAccount)
@@ -315,7 +320,7 @@ struct Panel: View {
                     .help(L10n.text("다른 계정으로 로그인…")).disabled(model.busy || model.loginInProgress)
             }
             Spacer(minLength: 0)
-            Button { model.refresh(); model.refreshLiveUsage(force: true); model.desktop.refresh() } label: {
+            Button { model.refresh(); model.refreshLiveUsage(force: true); model.desktop.refresh(); model.cli.refresh() } label: {
                 Image(systemName: "arrow.clockwise").font(.system(size: 12.5)).frame(width: 24, height: 24)
             }.buttonStyle(.plain).help(L10n.text("계정 새로고침")).accessibilityLabel(L10n.text("계정 새로고침")).disabled(model.busy)
             Menu {

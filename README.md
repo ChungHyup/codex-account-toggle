@@ -29,7 +29,7 @@ A small, native menu-bar app for people who use more than one Codex account. Kee
 - **Switch with a clear confirmation.** See which account you chose and whether Codex needs to restart. Cancel is the default.
 - **See quota before you switch.** The signed-in account gets a live reading. Inactive accounts show a last known local reading when it can be attributed; missing values stay unknown.
 - **Know when you are paying.** When the weekly allowance runs out and Codex keeps going on credits, the menu bar turns into an orange $ with the remaining share of a business seat's monthly credit limit, or a personal balance such as 2.8K. It blinks while credits are actually being spent and turns red if usage is blocked.
-- **Switch Claude desktop accounts too.** The panel's Claude tab keeps several Claude desktop accounts signed in and switches between them by relinking the app's data folder, with no sign-out. Claude restarts on each switch. See [Claude desktop accounts](docs/claude-desktop.md).
+- **Switch Claude accounts too.** The panel's Claude tab switches terminal `claude` accounts instantly (one config folder per account, the documented way) and keeps several Claude desktop accounts signed in, switching them by relinking the app's data folder, with no sign-out. Claude restarts on each switch. See [Claude desktop accounts](docs/claude-desktop.md).
 - **Make the menu yours.** Rename or remove saved accounts, show quota in the menu bar, and choose English or Korean. Light and dark appearance follow macOS.
 - **Keep control of your data.** No app-operated cloud sync or analytics. Authentication is handled by Codex; saved sign-in copies stay on your Mac.
 

@@ -14,6 +14,16 @@ Claude desktop (`com.anthropic.claudefordesktop`) keeps its sign-in cookies, the
 - The switch waits for Claude, its helpers, and Code binaries running from the data folder to exit. It never force-quits; if Claude does not quit, nothing changes. The Chrome bridge helper (`Contents/Helpers/chrome-native-host`) is started by Chrome and does not use the data folder, so it does not block.
 - Deleting a saved account moves its folder to the Trash.
 
+## Terminal Claude Code accounts
+
+The same tab also switches terminal `claude` accounts, the documented way: each account is its own `CLAUDE_CONFIG_DIR` under `~/.codex-account-toggle/claude-cli/profiles/<id>`, and the default account stays `~/.claude`.
+
+- A small POSIX sh `claude` shim in `~/.codex-account-toggle/claude-cli/bin` reads the selected id at every launch, exports that folder unless `CLAUDE_CONFIG_DIR` is already set, and execs the first real `claude` on PATH that is not itself.
+- Switching rewrites a one-line file: instant, no restart, and running sessions keep their account. The first `claude` run in a new account signs in once.
+- Folder ids never change because Claude Code ties each folder's login to its path. New accounts link the default account's `settings.json`, `CLAUDE.md`, `skills`, `commands`, and `agents`.
+- The app never edits shell files. **Set up…** installs the shim and copies the line to add to `~/.zshrc`; the app detects when a startup file contains it.
+- The desktop Code tab uses the desktop account, not these terminal accounts.
+
 ## Limits
 
 - One account at a time; a switch restarts Claude and stops running chats and Code or Cowork work.
