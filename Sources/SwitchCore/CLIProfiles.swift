@@ -171,13 +171,23 @@ public enum CLIDemoWorkspace {
     public static func make(in directory: URL = FileManager.default.temporaryDirectory) throws -> CLIProfileStore {
         let home = directory.appendingPathComponent("CodexAccountToggle-CLIDemo-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: home.appendingPathComponent(".claude"), withIntermediateDirectories: true)
-        try JSONSerialization.data(withJSONObject: ["oauthAccount": ["emailAddress": "personal@example.test"]])
+        try JSONSerialization.data(withJSONObject: ["oauthAccount": ["emailAddress": "personal@example.test", "accountUuid": DesktopDemoWorkspace.personal,
+                                                                      "organizationUuid": DesktopDemoWorkspace.org]])
             .write(to: home.appendingPathComponent(".claude.json"))
         let store = CLIProfileStore(base: home.appendingPathComponent(".codex-account-toggle/claude-cli"), home: home)
         store.discard = { try FileManager.default.removeItem(at: $0) }
         let work = try store.create(name: L10n.text("회사 Claude"))
-        try JSONSerialization.data(withJSONObject: ["oauthAccount": ["emailAddress": "work@example.test"]])
+        try JSONSerialization.data(withJSONObject: ["oauthAccount": ["emailAddress": "work@example.test", "accountUuid": DesktopDemoWorkspace.work,
+                                                                      "organizationUuid": DesktopDemoWorkspace.org]])
             .write(to: store.folder(for: work).appendingPathComponent(".claude.json"))
+        // A synthetic usage-limit refusal, as Claude Code records it, lifting in 95 minutes.
+        let projects = try store.folder(for: work).appendingPathComponent("projects/-demo")
+        try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
+        let now = Date()
+        let refusal: [String: Any] = ["type": "assistant", "timestamp": ISO8601DateFormatter().string(from: now.addingTimeInterval(-300)),
+                                      "entrypoint": "cli", "quotaLimits": ["status": "rejected", "rateLimitType": "five_hour",
+                                                                           "resetsAt": Int(now.timeIntervalSince1970 + 95 * 60)]]
+        try JSONSerialization.data(withJSONObject: refusal).write(to: projects.appendingPathComponent("demo.jsonl"))
         try store.installShim()
         return store
     }

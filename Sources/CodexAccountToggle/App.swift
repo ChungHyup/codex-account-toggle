@@ -154,8 +154,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if popover.isShown { popover.performClose(nil) }
         else if let button = item.button {
             model.refresh()
-            model.desktop.refresh()
-            model.cli.refresh()
+            model.refreshClaude()
             NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             // A menu-bar-only app does not receive clicks made in other apps, so a transient
@@ -294,6 +293,8 @@ final class Model: ObservableObject {
     let desktop: DesktopModel
     /// Terminal Claude Code accounts, also on the Claude tab.
     let cli: CLIModel
+    /// Claude usage for both, from local records.
+    let claudeUsage = ClaudeUsageBoard()
     static let liveModeKey = "liveMode"
     init() {
         // A fresh install starts in demo mode. An explicit `--live` (or the gear-menu switch) is
@@ -319,6 +320,8 @@ final class Model: ObservableObject {
         coordinator = SwitchCoordinator(store: store, lifecycle: lifecycle)
         desktop = DesktopModel(isDemo: isDemo)
         cli = CLIModel(isDemo: isDemo)
+        claudeUsage.reload = { [unowned self] in self.refreshClaude() }
+        refreshClaude()
         if isDemo { message = L10n.text("샘플 계정을 클릭해 보세요. 실제 Codex와 로그인에는 접근하지 않습니다.") }
         refresh()
         if isDemo {
@@ -326,6 +329,12 @@ final class Model: ObservableObject {
                 usage[profile.id] = try? UsageSnapshot.demo(profileID: profile.id, index: index)
             }
         }
+    }
+    /// Claude tab accounts and their usage.
+    func refreshClaude() {
+        desktop.refresh()
+        cli.refresh()
+        claudeUsage.refresh(desktop: desktop, cli: cli)
     }
     func refresh() {
         do {

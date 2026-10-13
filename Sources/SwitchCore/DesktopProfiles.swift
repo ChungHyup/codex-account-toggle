@@ -270,7 +270,21 @@ public enum DesktopDemoWorkspace {
         try seed(store.active, account: personal)
         let workID = try store.createEmptyProfile(name: L10n.text("회사 Claude"))
         try seed(store.folder(for: workID), account: work)
+        // Synthetic usage records: the personal account is 70 minutes into a 5-hour window.
+        let now = Date()
+        try history([(-85, 0, 18), (-70, 4, 19), (-30, 9, 20), (-5, 12, 21)], at: now).write(to: store.active.appendingPathComponent(ClaudeUsage.historyFile))
+        try history([(-200, 0, 64)], at: now).write(to: store.folder(for: workID).appendingPathComponent(ClaudeUsage.historyFile))
+        try ClaudeUsageSettings(file: store.root.appendingPathComponent("usage-settings.json"))
+            .setWeeklyReset(WeeklyReset(weekday: 6, hour: 11, minute: 0), account: personal)
         return store
+    }
+    public static let org = "33333333-3333-4333-8333-333333333333"
+    /// (minutes from now, 5-hour %, weekly %) records in the desktop app's format.
+    static func history(_ points: [(Double, Double, Double)], at now: Date) throws -> Data {
+        let samples = points.map { point in
+            ["org": org, "t": Int((now.timeIntervalSince1970 + point.0 * 60) * 1000), "u": ["fh": point.1, "sd": point.2]] as [String: Any]
+        }
+        return try JSONSerialization.data(withJSONObject: ["version": 1, "samples": samples])
     }
     public static func seed(_ folder: URL, account: String) throws {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

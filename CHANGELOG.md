@@ -7,6 +7,7 @@
 
 ## Unreleased
 
+- Claude usage on the Claude tab: 5-hour and weekly allowance left for every desktop and terminal account, from the desktop app's local usage records. The 5-hour reset is estimated, the weekly reset is set once per account from Claude's settings, and a limit refusal recorded by Claude Code shows the exact time it lifts. Local files only; see docs/claude-desktop.md.
 - Terminal Claude Code accounts on the same tab: one CLAUDE_CONFIG_DIR per account under ~/.codex-account-toggle/claude-cli and a `claude` shim that reads the selected account at each launch; switching is instant and shell files are never edited.
 - Claude desktop accounts: a Claude tab in the panel saves, adds, renames, deletes, and switches Claude desktop accounts. The app's data folder becomes a link to a per-account folder that a switch repoints atomically after Claude quits gracefully; nothing is copied, deleted, or force-quit. Design adapted from ajipurn/agent-profiles and erorplex/claude-desktop-profiles-macos (MIT); see docs/claude-desktop.md.
 - Fixed: after the ChatGPT app update of 2026-09-27 moved its bundled CLI to `Contents/Resources/codex-cli/bin/codex`, live reads were silently skipped and the menu bar froze on its last value. The CLI is now found at the new and old locations, or by searching the bundle.

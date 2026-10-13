@@ -24,6 +24,17 @@ The same tab also switches terminal `claude` accounts, the documented way: each 
 - The app never edits shell files. **Set up…** installs the shim and copies the line to add to `~/.zshrc`; the app detects when a startup file contains it.
 - The desktop Code tab uses the desktop account, not these terminal accounts.
 
+## Usage
+
+The tab shows each account's 5-hour and weekly allowance left, from files the Claude apps already write. Nothing reads credentials or calls an API.
+
+- **Amounts:** the desktop app records 5-hour and weekly used percentages per organization in `plan-usage-history.json` inside each account's data folder, so saved accounts keep their last record. A desktop account shows its most recently recorded organization; a terminal account shows the record whose account and organization ids match its `~/.claude.json` profile.
+- **5-hour reset:** the file has no reset times, so it is estimated as five hours after the window started filling (marked `~`). An expired window shows the full allowance.
+- **Weekly reset:** right-click an account → **Set weekly reset time…** and copy the day and time from Claude's Settings → Usage once per account (stored in this app's folder as `usage-settings.json`). After that time passes, weekly usage shows as reset.
+- **When a limit is hit:** Claude Code writes the refusal with an exact `resetsAt` into its transcript. The app reads the last 512 KB of transcripts changed in the past week and shows the limit and the time it lifts: desktop Code-tab refusals since the last desktop switch count for the desktop account, others for the terminal account whose folder they are in.
+- Records only update while the desktop app runs with that account, so a record older than 30 minutes shows its age.
+- Claude Code's status line also receives reset times, but only for Pro and Max subscribers, so it is not used. Calling the usage API with the app's cookies would use subscription credentials outside Anthropic's apps and is excluded.
+
 ## Limits
 
 - One account at a time; a switch restarts Claude and stops running chats and Code or Cowork work.

@@ -215,5 +215,21 @@
   "로그인 전": "Not signed in",
   "새로 여는 터미널의 claude에 이 계정을 씁니다": "Use this account for claude in terminals you open",
   "터미널 Claude 계정 추가…": "Add a terminal Claude account…",
-  "Claude 데스크톱": "Claude desktop"
+  "Claude 데스크톱": "Claude desktop",
+  "주간 한도 초기화 시각": "Weekly limit reset",
+  "Claude 설정 → 사용량에 보이는 주간 재설정 요일과 시각을 입력하세요. 계정마다 한 번만 입력하면 됩니다.": "Enter the weekly reset day and time shown in Claude Settings → Usage. Once per account is enough.",
+  "지우기": "Clear",
+  "5시간 %@ · 주간 %@ 남음": "5h %@ · week %@ left",
+  "주간 한도": "Weekly limit",
+  "5시간 한도": "5h limit",
+  "%@ 도달 · %@ 풀림": "%@ hit · lifts %@",
+  "Claude 데스크톱 앱이 기록한 사용량입니다. 5시간 초기화 시각은 추정값이고, 주간 초기화는 직접 입력한 시각입니다. 한도에 걸리면 Claude Code 기록의 정확한 시각을 보여줍니다.": "Usage recorded by the Claude desktop app. The 5-hour reset is an estimate and the weekly reset is the time you entered. When a limit is hit, the exact time from Claude Code's records is shown.",
+  "방금 기록": "Recorded just now",
+  "%@분 전 기록": "Recorded %@m ago",
+  "%@시간 전 기록": "Recorded %@h ago",
+  "%@일 전 기록": "Recorded %@d ago",
+  "주간 초기화 시각 설정…": "Set weekly reset time…",
+  "5시간 %@ 남음": "5h %@ left",
+  "주간 %@ 남음": "Week %@ left",
+  "~%@ 초기화": "resets ~%@"
 }

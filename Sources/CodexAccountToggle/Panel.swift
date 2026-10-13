@@ -44,9 +44,9 @@ struct Panel: View {
             if model.isDemo && !productPreview { demoStrip }
             tabPicker
             if tab == "claude" {
-                DesktopSection(model: model.desktop)
+                DesktopSection(model: model.desktop, usage: model.claudeUsage)
                 Divider()
-                CLISection(model: model.cli)
+                CLISection(model: model.cli, usage: model.claudeUsage)
             } else { codexContent }
             Divider()
             footer

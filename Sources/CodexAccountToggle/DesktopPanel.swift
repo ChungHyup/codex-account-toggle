@@ -177,6 +177,7 @@ final class DesktopModel: ObservableObject {
 
 struct DesktopSection: View {
     @ObservedObject var model: DesktopModel
+    @ObservedObject var usage: ClaudeUsageBoard
 
     var body: some View {
         VStack(spacing: 0) {
@@ -202,6 +203,7 @@ struct DesktopSection: View {
                 Text(model.currentName ?? L10n.text("지금 쓰는 Claude 계정")).font(.system(size: 14, weight: .semibold)).lineLimit(1)
                 Text(status).font(.system(size: 11.5)).foregroundStyle(statusIsWarning ? Palette.warning : .secondary)
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                if !usage.desktopCurrent.isEmpty { ClaudeUsageLines(entry: usage.desktopCurrent).padding(.top, 2) }
             }
             Spacer(minLength: 6)
             Image(systemName: "checkmark.circle.fill").font(.system(size: 14)).foregroundStyle(Palette.accent)
@@ -212,6 +214,9 @@ struct DesktopSection: View {
         .contextMenu {
             if let id = model.activeID, let profile = model.profiles.first(where: { $0.id == id }) {
                 Button(L10n.text("이름 변경…")) { model.rename(profile) }
+            }
+            if let account = usage.desktopCurrent.account {
+                Button(L10n.text("주간 초기화 시각 설정…")) { usage.editWeeklyReset(account: account) }
             }
         }
     }
@@ -229,7 +234,10 @@ struct DesktopSection: View {
         Button { model.switchTo(profile) } label: {
             HStack(spacing: 8) {
                 badge(profile.name, size: 22, active: false)
-                Text(profile.name).font(.system(size: 13, weight: .medium)).foregroundStyle(.primary).lineLimit(1).truncationMode(.tail)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(profile.name).font(.system(size: 13, weight: .medium)).foregroundStyle(.primary).lineLimit(1).truncationMode(.tail)
+                    if let entry = usage.desktopSaved[profile.id], !entry.isEmpty { ClaudeUsageLines(entry: entry, compact: true) }
+                }
                 Spacer(minLength: 8)
                 Image(systemName: "arrow.left.arrow.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
             }.padding(.horizontal, 12).padding(.vertical, 8).contentShape(Rectangle())
@@ -238,6 +246,9 @@ struct DesktopSection: View {
         .help(L10n.format("%@ 계정으로 전환", profile.name))
         .contextMenu {
             Button(L10n.text("이름 변경…")) { model.rename(profile) }
+            if let account = usage.desktopSaved[profile.id]?.account {
+                Button(L10n.text("주간 초기화 시각 설정…")) { usage.editWeeklyReset(account: account) }
+            }
             Divider()
             Button(L10n.text("계정 삭제…")) { model.delete(profile) }
         }
@@ -375,6 +386,7 @@ final class CLIModel: ObservableObject {
 
 struct CLISection: View {
     @ObservedObject var model: CLIModel
+    @ObservedObject var usage: ClaudeUsageBoard
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -396,6 +408,7 @@ struct CLISection: View {
 
     private func row(id: String?, name: String, email: String?, profile: CLIProfile?) -> some View {
         let selected = model.activeID == id
+        let entry = id.flatMap { usage.cliSaved[$0] } ?? (id == nil ? usage.cliDefault : ClaudeUsageBoard.Entry())
         return Button { model.select(id) } label: {
             HStack(spacing: 8) {
                 Image(systemName: selected ? "largecircle.fill.circle" : "circle")
@@ -403,6 +416,7 @@ struct CLISection: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(name).font(.system(size: 13, weight: selected ? .semibold : .regular)).foregroundStyle(.primary).lineLimit(1)
                     Text(email ?? L10n.text("로그인 전")).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                    if !entry.isEmpty { ClaudeUsageLines(entry: entry, compact: true) }
                 }
                 Spacer(minLength: 6)
             }.padding(.horizontal, 12).padding(.vertical, 5).contentShape(Rectangle())
@@ -410,6 +424,9 @@ struct CLISection: View {
         .buttonStyle(RowButtonStyle())
         .help(L10n.text("새로 여는 터미널의 claude에 이 계정을 씁니다"))
         .contextMenu {
+            if let account = entry.account {
+                Button(L10n.text("주간 초기화 시각 설정…")) { usage.editWeeklyReset(account: account) }
+            }
             if let profile {
                 Button(L10n.text("이름 변경…")) { model.rename(profile) }
                 Divider()
