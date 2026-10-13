@@ -29,7 +29,7 @@ DMG를 열고 앱을 Applications로 드래그하세요.
 처음 설치하면 데모이며, 이전에 실사용 모드를 켰다면 해당 설정이 유지됩니다.
 이번 QA 베타는 공증 전 버전입니다. 필요하면 소스에서 직접 빌드하세요.
 
-Guide: https://github.com/ChungHyup/codex-account-toggle
+Guide: https://github.com/ChungHyup/pinch-hitter
 TXT
 output="dist/Pinch-Hitter-${version}-universal.dmg"
 hdiutil create -volname 'Pinch Hitter' -srcfolder "$stage" -format UDZO -ov "$output"

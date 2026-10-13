@@ -1,16 +1,16 @@
 <p align="center"><img src="docs/brand/banner.svg" alt="Pinch Hitter — Your accounts. One menu." width="100%"></p>
 
 <p align="center">
-  <a href="https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1"><b>Download for macOS</b></a> ·
+  <a href="https://github.com/ChungHyup/pinch-hitter/releases/tag/v0.2.0-beta.1"><b>Download for macOS</b></a> ·
   <a href="README.ko.md">한국어</a> ·
-  <a href="https://github.com/ChungHyup/codex-account-toggle/issues">Report an issue</a>
+  <a href="https://github.com/ChungHyup/pinch-hitter/issues">Report an issue</a>
 </p>
 
 <p align="center">
   <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-171f23">
   <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%2B_Intel-universal-14745e">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-14745e"></a>
-  <a href="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/ChungHyup/pinch-hitter/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/ChungHyup/pinch-hitter/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 A small, native menu-bar app for people who use more than one Codex or Claude account. When one account runs out, send in a pinch hitter: keep personal and work accounts close, check what each has left, and switch Codex, Claude desktop, or terminal Claude Code with a click.
@@ -37,7 +37,7 @@ A small, native menu-bar app for people who use more than one Codex or Claude ac
 
 ## Install
 
-1. Download **Codex-Account-Toggle-0.2.0-beta.1-universal.dmg** from [Releases](https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1).
+1. Download **Codex-Account-Toggle-0.2.0-beta.1-universal.dmg** from [Releases](https://github.com/ChungHyup/pinch-hitter/releases/tag/v0.2.0-beta.1).
 2. Open the DMG and drag **Codex Account Toggle** to **Applications**.
 3. Open the app and click the circular-arrows icon in your menu bar.
 
@@ -80,8 +80,8 @@ The live read starts a short-lived `codex app-server`; Codex may refresh the act
 Install Xcode Command Line Tools (`xcode-select --install`) and use Swift 5.9+. No third-party Swift package dependencies.
 
 ```sh
-git clone https://github.com/ChungHyup/codex-account-toggle.git
-cd codex-account-toggle
+git clone https://github.com/ChungHyup/pinch-hitter.git
+cd pinch-hitter
 swift test --disable-sandbox
 bash scripts/build-app.sh
 open 'dist/Pinch Hitter.app'
@@ -100,7 +100,7 @@ bash scripts/package-dmg.sh
 
 Saved sign-ins are **plaintext files protected by filesystem permissions** (directory 0700, files 0600), not encrypted vault entries. They remain under `~/Library/Application Support/CodexSwitch` for compatibility with the previous app name. Never upload that directory or `auth.json` in an issue. See [SECURITY.md](SECURITY.md) for the full model and supported scope.
 
-Found a rough edge? [Open an issue](https://github.com/ChungHyup/codex-account-toggle/issues) with your macOS version and reproducible steps, without account secrets. Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md). Windows, notarized distribution, and an automatic updater are not included in this release.
+Found a rough edge? [Open an issue](https://github.com/ChungHyup/pinch-hitter/issues) with your macOS version and reproducible steps, without account secrets. Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md). Windows, notarized distribution, and an automatic updater are not included in this release.
 
 ## License & acknowledgments
 

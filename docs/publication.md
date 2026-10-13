@@ -1,6 +1,6 @@
 # Publication status
 
-The repository is public (`ChungHyup/codex-account-toggle`, MIT) and `v0.2.0-beta.1` is a public prerelease with a universal DMG and checksum. This page tracks what remains before a wider announcement and a non-beta release.
+The repository is public (`ChungHyup/pinch-hitter`, MIT) and `v0.2.0-beta.1` is a public prerelease with a universal DMG and checksum. This page tracks what remains before a wider announcement and a non-beta release.
 
 Done:
 

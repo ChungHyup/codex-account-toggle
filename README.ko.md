@@ -1,16 +1,16 @@
 <p align="center"><img src="docs/brand/banner.svg" alt="Pinch Hitter — Your accounts. One menu." width="100%"></p>
 
 <p align="center">
-  <a href="https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1"><b>macOS 다운로드</b></a> ·
+  <a href="https://github.com/ChungHyup/pinch-hitter/releases/tag/v0.2.0-beta.1"><b>macOS 다운로드</b></a> ·
   <a href="README.md">English</a> ·
-  <a href="https://github.com/ChungHyup/codex-account-toggle/issues">문제 제보</a>
+  <a href="https://github.com/ChungHyup/pinch-hitter/issues">문제 제보</a>
 </p>
 
 <p align="center">
   <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-171f23">
   <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%2B_Intel-universal-14745e">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-14745e"></a>
-  <a href="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/ChungHyup/codex-account-toggle/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/ChungHyup/pinch-hitter/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/ChungHyup/pinch-hitter/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 여러 Codex·Claude 계정을 쓰는 개발자를 위한 작은 macOS 메뉴바 앱입니다. 한 계정의 사용량이 바닥나면 대타(pinch hitter)를 내보내세요. 개인·업무 계정을 모아두고 남은 사용량을 확인한 뒤, Codex·Claude 데스크톱·터미널 Claude Code를 클릭 한 번으로 전환합니다.
@@ -35,7 +35,7 @@
 
 ## 설치
 
-1. [릴리즈](https://github.com/ChungHyup/codex-account-toggle/releases/tag/v0.2.0-beta.1)에서 **Codex-Account-Toggle-0.2.0-beta.1-universal.dmg**를 다운로드합니다.
+1. [릴리즈](https://github.com/ChungHyup/pinch-hitter/releases/tag/v0.2.0-beta.1)에서 **Codex-Account-Toggle-0.2.0-beta.1-universal.dmg**를 다운로드합니다.
 2. DMG를 열어 **Codex Account Toggle**을 **Applications**로 드래그합니다.
 3. 앱을 열고 메뉴바의 순환 화살표 아이콘을 누릅니다.
 
@@ -78,8 +78,8 @@ xattr -d com.apple.quarantine "/Applications/Codex Account Toggle.app"
 Xcode Command Line Tools(`xcode-select --install`)와 Swift 5.9 이상이 필요합니다. 외부 Swift 패키지 의존성은 없습니다.
 
 ```sh
-git clone https://github.com/ChungHyup/codex-account-toggle.git
-cd codex-account-toggle
+git clone https://github.com/ChungHyup/pinch-hitter.git
+cd pinch-hitter
 swift test --disable-sandbox
 bash scripts/build-app.sh
 open 'dist/Pinch Hitter.app'
